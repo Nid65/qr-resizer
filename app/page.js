@@ -41,6 +41,45 @@ const MAX_SIZE_BYTES = 10 * 1024 * 1024 // 10 MB
 const ACCEPTED_MIME = ['image/png', 'image/jpeg', 'image/jpg']
 const ACCEPTED_EXT = ['.png', '.jpg', '.jpeg']
 
+const FAQ_ITEMS = [
+  {
+    q: 'How do I resize a QR code online for free?',
+    a: 'Upload your existing QR code image to QR Resizer, wait a moment for it to be decoded, choose your desired size (up to 2048 pixels) and format (PNG or SVG), and click Download. The whole process is 100% free, requires no signup, and completes in under 30 seconds.',
+  },
+  {
+    q: 'Is QR Resizer really free?',
+    a: 'Yes — QR Resizer is completely free with no ads, no watermarks, no signup, and no usage limits. There is no premium tier or hidden paywall. Everything runs in your browser.',
+  },
+  {
+    q: 'Can I make a blurry QR code sharp again?',
+    a: 'Yes. QR Resizer does not upscale your original pixels — instead, it decodes the QR content and regenerates a brand-new, mathematically perfect QR code at whatever resolution you choose. This is why a blurry 100×100 pixel screenshot can become a razor-sharp 2048×2048 pixel print-ready image.',
+  },
+  {
+    q: 'Is my QR code data uploaded to a server?',
+    a: 'No. Everything — decoding, type detection, and regeneration — happens locally in your browser using JavaScript. Your QR image and its decoded content never leave your device. We do not store, log, or transmit any of it.',
+  },
+  {
+    q: 'What image formats can I upload?',
+    a: 'You can upload PNG, JPG, or JPEG images up to 10 MB. Screenshots, photos of printed QR codes, and downloaded QR images all work. HEIC, GIF, PDF, and SVG uploads are not supported in this version.',
+  },
+  {
+    q: 'PNG or SVG — which format should I choose?',
+    a: 'Choose PNG for social media, websites, screens, and most printing needs. Choose SVG when you need infinite scalability without any quality loss — ideal for large banners, packaging, business cards, and any print material where you may resize later.',
+  },
+  {
+    q: 'What sizes can I export?',
+    a: 'Four size options are available: 256×256, 512×512, 1024×1024, and 2048×2048 pixels. Most use cases work perfectly at 1024. For high-quality print material, choose 2048 or export as SVG for unlimited scaling.',
+  },
+  {
+    q: 'Will the new QR code still scan?',
+    a: 'Yes — because QR Resizer generates a fresh QR from the exact same decoded content using industry-standard encoding at error-correction level H (the highest), the new QR will scan reliably on any smartphone or QR reader, often better than the original.',
+  },
+  {
+    q: 'What kinds of QR codes are supported?',
+    a: 'QR Resizer handles standard QR codes containing URLs, plain text, email links, phone numbers, SMS, WiFi credentials, contact cards (vCard), geolocation, and cryptocurrency addresses. The tool auto-detects the type after decoding.',
+  },
+]
+
 function detectQrType(data) {
   if (!data) return { type: 'Unknown', icon: TypeIcon }
   const s = data.trim()
@@ -304,7 +343,10 @@ export default function App() {
           <Button size="lg" onClick={scrollToUpload}>
             <Upload className="mr-2 h-4 w-4" /> Resize QR
           </Button>
-          <Button size="lg" variant="outline" onClick={scrollToUpload}>
+          <Button size="lg" variant="outline" onClick={() => {
+            const el = document.getElementById('how-it-works')
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          }}>
             How it works
           </Button>
         </div>
@@ -480,6 +522,91 @@ export default function App() {
             title="Print ready"
             desc="Export up to 2048×2048 PNG or crisp, infinitely-scalable SVG for any use case."
           />
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section id="how-it-works" className="container mx-auto px-4 py-16 border-t border-border/60">
+        <div className="text-center mb-10 max-w-3xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">How to resize a QR code online</h2>
+          <p className="text-muted-foreground mt-3">
+            QR Resizer is a free online tool that decodes any existing QR code image and regenerates a clean,
+            high-resolution copy in seconds — no signup, no software install, no data ever leaves your browser.
+          </p>
+        </div>
+        <div className="grid gap-6 md:grid-cols-4">
+          {[
+            { n: '1', t: 'Upload your QR code', d: 'Drag a PNG, JPG or JPEG QR image (up to 10 MB) into the drop zone above, or click to browse. Even a blurry screenshot or a photo of a printed QR works.' },
+            { n: '2', t: 'Automatic decoding', d: 'QR Resizer reads the QR code locally in your browser and shows you the decoded content along with the detected type — URL, WiFi, phone, email, SMS or plain text.' },
+            { n: '3', t: 'Pick size & format', d: 'Choose an output size (256, 512, 1024, or 2048 pixels) and format (PNG or SVG). SVG scales infinitely without quality loss — perfect for large prints.' },
+            { n: '4', t: 'Download the new QR', d: 'Get a freshly generated, pixel-perfect QR code ready for business cards, posters, packaging, menus, flyers or anywhere else you need a high-resolution QR.' },
+          ].map((s) => (
+            <div key={s.n} className="rounded-xl border border-border/70 bg-card p-5">
+              <div className="h-9 w-9 rounded-full bg-primary text-primary-foreground grid place-items-center font-semibold mb-3">
+                {s.n}
+              </div>
+              <h3 className="font-semibold mb-1">{s.t}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">{s.d}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Use cases */}
+      <section id="use-cases" className="container mx-auto px-4 py-16 border-t border-border/60">
+        <div className="text-center mb-10 max-w-3xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">When to use a free QR code resizer</h2>
+          <p className="text-muted-foreground mt-3">
+            You already have a QR code, but it&apos;s the wrong size or too blurry. Instead of hunting down the original URL
+            and rebuilding it from scratch, drop it into QR Resizer and get a print-ready copy instantly.
+          </p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          {[
+            { t: 'Print a large poster', d: 'Blow up a QR for a shop window, event banner, or trade-show booth without pixelation.' },
+            { t: 'Add to business cards', d: 'Turn a low-resolution vCard QR into a crisp 1024 px PNG that prints sharply at any card size.' },
+            { t: 'Restaurant menu QR', d: 'Enhance a blurry menu QR into a scannable, professional-looking code for reprints.' },
+            { t: 'Marketing collateral', d: 'Convert a screenshot QR into scalable SVG for brochures, flyers, and packaging.' },
+            { t: 'WiFi share cards', d: 'Regenerate a WiFi-connect QR code at higher resolution for guest rooms, offices and cafés.' },
+            { t: 'Fix a blurry QR image', d: 'Repair pixelated or low-quality QR screenshots so scanners read them reliably again.' },
+          ].map((u) => (
+            <div key={u.t} className="rounded-xl border border-border/70 bg-card p-5">
+              <h3 className="font-semibold mb-1">{u.t}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">{u.d}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="container mx-auto px-4 py-16 border-t border-border/60">
+        <div className="text-center mb-10 max-w-3xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">Frequently asked questions</h2>
+          <p className="text-muted-foreground mt-3">Everything you need to know about resizing QR codes online.</p>
+        </div>
+        <div className="max-w-3xl mx-auto grid gap-4">
+          {FAQ_ITEMS.map((f) => (
+            <details key={f.q} className="group rounded-xl border border-border/70 bg-card p-5 open:shadow-sm">
+              <summary className="cursor-pointer list-none font-medium flex items-center justify-between gap-4">
+                <span>{f.q}</span>
+                <span className="text-muted-foreground text-lg group-open:rotate-45 transition-transform">+</span>
+              </summary>
+              <div className="mt-3 text-sm text-muted-foreground leading-relaxed">{f.a}</div>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      {/* SEO-friendly footer content */}
+      <section className="container mx-auto px-4 py-16 border-t border-border/60">
+        <div className="max-w-3xl mx-auto text-center text-sm text-muted-foreground leading-relaxed">
+          <p>
+            <strong className="text-foreground">QR Resizer</strong> is a fast, free online QR code resizer and
+            regenerator. Upload any existing QR code image — whether it&apos;s a blurry screenshot, a low-resolution
+            picture, or a photo of a printed QR — and instantly get a crisp new version at up to 2048×2048 pixels in
+            PNG or scalable SVG format. Because everything runs locally in your browser, your QR content is never
+            uploaded to a server, never stored, and never shared. No signup, no ads, no watermarks.
+          </p>
         </div>
       </section>
 

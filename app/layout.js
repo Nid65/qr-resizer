@@ -123,6 +123,86 @@ const jsonLd = {
   },
 }
 
+const faqLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'How do I resize a QR code online for free?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Upload your existing QR code image to QR Resizer, wait a moment for it to be decoded, choose your desired size (up to 2048 pixels) and format (PNG or SVG), and click Download. The whole process is 100% free, requires no signup, and completes in under 30 seconds.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is QR Resizer really free?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes — QR Resizer is completely free with no ads, no watermarks, no signup, and no usage limits.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Can I make a blurry QR code sharp again?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes. QR Resizer decodes the QR content and regenerates a brand-new, mathematically perfect QR code at whatever resolution you choose, so a blurry screenshot can become a razor-sharp 2048×2048 pixel print-ready image.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Is my QR code data uploaded to a server?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'No. Everything — decoding, type detection, and regeneration — happens locally in your browser. Your QR image and its decoded content never leave your device.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What image formats can I upload?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'You can upload PNG, JPG, or JPEG images up to 10 MB.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'PNG or SVG — which format should I choose?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Choose PNG for social media, websites, screens, and most printing needs. Choose SVG when you need infinite scalability without any quality loss — ideal for large banners, packaging, and business cards.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Will the resized QR code still scan?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Yes — QR Resizer generates a fresh QR from the exact same decoded content using industry-standard encoding at error-correction level H, so it will scan reliably on any smartphone or QR reader.',
+      },
+    },
+  ],
+}
+
+const howToLd = {
+  '@context': 'https://schema.org',
+  '@type': 'HowTo',
+  name: 'How to resize a QR code online',
+  description:
+    'Resize an existing QR code image to a higher resolution (up to 2048×2048 PNG or scalable SVG) for free in your browser.',
+  totalTime: 'PT30S',
+  supply: [{ '@type': 'HowToSupply', name: 'An existing QR code image (PNG, JPG, or JPEG)' }],
+  tool: [{ '@type': 'HowToTool', name: 'A modern web browser' }],
+  step: [
+    { '@type': 'HowToStep', position: 1, name: 'Upload the QR image', text: 'Drag and drop your PNG, JPG or JPEG QR code into the upload area, or click to browse.' },
+    { '@type': 'HowToStep', position: 2, name: 'Automatic decoding', text: 'QR Resizer reads the QR code locally and displays the decoded content and detected type.' },
+    { '@type': 'HowToStep', position: 3, name: 'Choose size and format', text: 'Select an output size (256–2048 px) and format (PNG or SVG).' },
+    { '@type': 'HowToStep', position: 4, name: 'Download', text: 'Click Download to save your freshly generated, high-resolution QR code.' },
+  ],
+}
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -130,6 +210,14 @@ export default function RootLayout({ children }) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(howToLd) }}
         />
         <script dangerouslySetInnerHTML={{__html:'window.addEventListener("error",function(e){if(e.error instanceof DOMException&&e.error.name==="DataCloneError"&&e.message&&e.message.includes("PerformanceServerTiming")){e.stopImmediatePropagation();e.preventDefault()}},true);'}} />
       </head>
