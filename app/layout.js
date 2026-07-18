@@ -2,8 +2,8 @@ import './globals.css'
 import { Providers } from './providers'
 
 export const metadata = {
-  title: 'QR Optimizer — Regenerate any QR code in high quality',
-  description: 'Upload a blurry or low-res QR code and instantly regenerate a crisp, high-resolution PNG or SVG. 100% browser-based. No uploads to any server.',
+  title: 'QR Resizer — Regenerate any QR code in high quality',
+  description: 'Upload a blurry or low-res QR code and instantly resize it into a crisp, high-resolution PNG or SVG. 100% browser-based. No uploads to any server.',
 }
 
 export default function RootLayout({ children }) {

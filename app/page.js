@@ -277,7 +277,7 @@ export default function App() {
             <div className="h-9 w-9 rounded-lg bg-primary text-primary-foreground grid place-items-center shadow-sm">
               <QrCode className="h-5 w-5" />
             </div>
-            <div className="font-semibold tracking-tight">QR Optimizer</div>
+            <div className="font-semibold tracking-tight">QR Resizer</div>
             <Badge variant="secondary" className="ml-2 hidden sm:inline-flex">100% Browser</Badge>
           </div>
           <nav className="flex items-center gap-2">
@@ -291,7 +291,7 @@ export default function App() {
               <span className="hidden sm:inline">GitHub</span>
             </a>
             <Button size="sm" onClick={scrollToUpload} className="ml-2">
-              Optimize QR
+              Resize QR
             </Button>
           </nav>
         </div>
@@ -304,7 +304,7 @@ export default function App() {
           Regenerate blurry QR codes into crisp, print-ready versions
         </div>
         <h1 className="mt-5 text-4xl md:text-6xl font-bold tracking-tight">
-          QR <span className="text-primary">Optimizer</span>
+          QR <span className="text-primary">Resizer</span>
         </h1>
         <p className="mt-4 mx-auto max-w-2xl text-base md:text-lg text-muted-foreground">
           Upload any QR code and regenerate a clean, high-resolution version in seconds.
@@ -312,7 +312,7 @@ export default function App() {
         </p>
         <div className="mt-6 flex items-center justify-center gap-3">
           <Button size="lg" onClick={scrollToUpload}>
-            <Upload className="mr-2 h-4 w-4" /> Optimize QR
+            <Upload className="mr-2 h-4 w-4" /> Resize QR
           </Button>
           <Button size="lg" variant="outline" onClick={scrollToUpload}>
             How it works
@@ -396,7 +396,7 @@ export default function App() {
                 {/* Right: Regenerated + controls */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">Optimized</div>
+                    <div className="text-sm text-muted-foreground">Resized</div>
                     <Badge className="gap-1" variant="secondary">
                       <Sparkles className="h-3 w-3" />
                       {size}px · {format.toUpperCase()}
@@ -410,7 +410,7 @@ export default function App() {
                     )}
                     {generatedUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={generatedUrl} alt="Optimized QR" className="max-h-64 object-contain" />
+                      <img src={generatedUrl} alt="Resized QR" className="max-h-64 object-contain" />
                     ) : (
                       <div className="text-sm text-muted-foreground">Generating…</div>
                     )}
@@ -447,7 +447,7 @@ export default function App() {
 
                   <div className="flex flex-col sm:flex-row gap-2">
                     <Button className="flex-1" size="lg" onClick={downloadFile} disabled={!generatedUrl || generating}>
-                      <Download className="mr-2 h-4 w-4" /> Download Optimized QR
+                      <Download className="mr-2 h-4 w-4" /> Download Resized QR
                     </Button>
                     <Button variant="outline" size="lg" onClick={resetAll}>
                       <RefreshCw className="mr-2 h-4 w-4" /> New
@@ -498,7 +498,7 @@ export default function App() {
         <div className="container mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <QrCode className="h-4 w-4" />
-            <span>QR Optimizer · v1.0</span>
+            <span>QR Resizer · v1.0</span>
           </div>
           <div className="flex items-center gap-5">
             <a href="#" className="hover:text-foreground">Privacy</a>
