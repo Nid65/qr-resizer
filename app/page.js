@@ -25,7 +25,6 @@ import {
   Loader2,
   AlertTriangle,
   CheckCircle2,
-  Github,
   Link as LinkIcon,
   Mail,
   Phone,
@@ -281,15 +280,6 @@ export default function App() {
             <Badge variant="secondary" className="ml-2 hidden sm:inline-flex">100% Browser</Badge>
           </div>
           <nav className="flex items-center gap-2">
-            <a
-              href="https://github.com"
-              target="_blank"
-              rel="noreferrer"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors inline-flex items-center gap-1"
-            >
-              <Github className="h-4 w-4" />
-              <span className="hidden sm:inline">GitHub</span>
-            </a>
             <Button size="sm" onClick={scrollToUpload} className="ml-2">
               Resize QR
             </Button>
@@ -503,9 +493,6 @@ export default function App() {
           <div className="flex items-center gap-5">
             <a href="#" className="hover:text-foreground">Privacy</a>
             <a href="#" className="hover:text-foreground">About</a>
-            <a href="https://github.com" target="_blank" rel="noreferrer" className="hover:text-foreground inline-flex items-center gap-1">
-              <Github className="h-3.5 w-3.5" /> GitHub
-            </a>
           </div>
         </div>
       </footer>
