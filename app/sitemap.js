@@ -1,6 +1,6 @@
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
-  'https://qr-resizer.vercel.app'
+  'https://qr-sizer.com'
 
 export default function sitemap() {
   return [

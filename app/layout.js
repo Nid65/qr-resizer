@@ -3,7 +3,7 @@ import { Providers } from './providers'
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
-  'https://qr-resizer.vercel.app'
+  'https://qr-sizer.com'
 
 const TITLE = 'QR Resizer — Regenerate any QR code in high quality (PNG & SVG)'
 const DESCRIPTION =
