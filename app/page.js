@@ -327,20 +327,18 @@ export default function App() {
           </div>
           <nav className="flex items-center gap-2">
             <a
-              href="/"
-              className="text-sm font-medium px-3 py-1.5 rounded-md bg-secondary"
+              href="/create"
+              className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 h-9 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
             >
-              Resize
+              Create QR
             </a>
             <a
-              href="/create"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-md"
+              href="#upload"
+              onClick={(e) => { e.preventDefault(); scrollToUpload() }}
+              className="inline-flex items-center justify-center rounded-md bg-primary text-primary-foreground px-3 h-9 text-sm font-medium hover:bg-primary/90 transition-colors"
             >
-              Create
-            </a>
-            <Button size="sm" onClick={scrollToUpload} className="ml-2">
               Resize QR
-            </Button>
+            </a>
           </nav>
         </div>
       </header>
@@ -362,13 +360,16 @@ export default function App() {
           <Button size="lg" onClick={scrollToUpload}>
             <Upload className="mr-2 h-4 w-4" /> Resize QR
           </Button>
-          <Button size="lg" variant="outline" onClick={() => {
-            const el = document.getElementById('how-it-works')
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-          }}>
-            How it works
+          <Button size="lg" variant="outline" asChild>
+            <a href="/create">
+              <Sparkles className="mr-2 h-4 w-4" /> Create QR
+            </a>
           </Button>
         </div>
+        <p className="mt-4 text-xs text-muted-foreground">
+          Need to build a new QR from scratch?{' '}
+          <a href="/create" className="underline underline-offset-2 hover:text-foreground">Generate a QR code</a>{' '}for URL, WiFi, business card, food menu &amp; more.
+        </p>
       </section>
 
       {/* Upload / Workspace */}

@@ -25,6 +25,7 @@ import {
   MessageSquare,
   Wifi,
   UserSquare2,
+  IdCard,
   UtensilsCrossed,
   Type as TypeIcon,
   Download,
@@ -47,14 +48,14 @@ const EC_LEVELS = [
 ]
 
 const TYPES = [
-  { value: 'url', label: 'URL / Link', icon: LinkIcon },
-  { value: 'text', label: 'Plain Text', icon: TypeIcon },
-  { value: 'email', label: 'Email', icon: Mail },
-  { value: 'phone', label: 'Phone Number', icon: Phone },
-  { value: 'sms', label: 'SMS Message', icon: MessageSquare },
-  { value: 'wifi', label: 'WiFi Network', icon: Wifi },
-  { value: 'vcard', label: 'Contact Card (vCard)', icon: UserSquare2 },
-  { value: 'menu', label: 'Food Menu', icon: UtensilsCrossed },
+  { value: 'url', label: 'URL / Link', short: 'URL', icon: LinkIcon },
+  { value: 'text', label: 'Plain Text', short: 'Text', icon: TypeIcon },
+  { value: 'email', label: 'Email', short: 'Email', icon: Mail },
+  { value: 'phone', label: 'Phone Number', short: 'Phone', icon: Phone },
+  { value: 'sms', label: 'SMS Message', short: 'SMS', icon: MessageSquare },
+  { value: 'wifi', label: 'WiFi Network', short: 'WiFi', icon: Wifi },
+  { value: 'vcard', label: 'Business Card', short: 'Business Card', icon: IdCard },
+  { value: 'menu', label: 'Food Menu', short: 'Food Menu', icon: UtensilsCrossed },
 ]
 
 function escapeWifi(s) {
@@ -288,16 +289,16 @@ export default function CreatePage() {
           </Link>
           <nav className="flex items-center gap-2">
             <Link
-              href="/"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-md"
+              href="/create"
+              className="inline-flex items-center justify-center rounded-md bg-primary text-primary-foreground px-3 h-9 text-sm font-medium hover:bg-primary/90 transition-colors"
             >
-              Resize
+              Create QR
             </Link>
             <Link
-              href="/create"
-              className="text-sm font-medium px-3 py-1.5 rounded-md bg-secondary"
+              href="/"
+              className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 h-9 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
             >
-              Create
+              Resize QR
             </Link>
           </nav>
         </div>
@@ -313,8 +314,11 @@ export default function CreatePage() {
           Free QR Code <span className="text-primary">Generator</span>
         </h1>
         <p className="mt-4 mx-auto max-w-2xl text-base md:text-lg text-muted-foreground">
-          Create custom QR codes with your logo and brand colors. URL, WiFi, contact cards, and more —
-          all generated in your browser. QR codes never expire.
+          Create custom QR codes with your logo and brand colors. Generate QR codes for URLs, WiFi networks,
+          business cards, food menus, and more — all in your browser. QR codes never expire.
+        </p>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Already have a QR image? <Link href="/" className="underline underline-offset-2 hover:text-foreground">Resize an existing QR code</Link>{' '}instead.
         </p>
       </section>
 
@@ -345,7 +349,7 @@ export default function CreatePage() {
                           ].join(' ')}
                         >
                           <Icon className="h-4 w-4" />
-                          <span className="leading-tight text-center">{t.label.split(' ')[0]}</span>
+                          <span className="leading-tight text-center">{t.short}</span>
                         </button>
                       )
                     })}
@@ -665,7 +669,7 @@ export default function CreatePage() {
                 </div>
 
                 <Button size="lg" className="w-full" onClick={download} disabled={!downloadUrl || busy}>
-                  <Download className="mr-2 h-4 w-4" /> Download QR code
+                  <Download className="mr-2 h-4 w-4" /> Download QR code{bgTransparent ? ' (transparent)' : ''}
                 </Button>
 
                 <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
@@ -690,19 +694,78 @@ export default function CreatePage() {
         </div>
       </section>
 
+      {/* How to create */}
+      <section id="how-to-create" className="container mx-auto px-4 py-16 border-t border-border/60">
+        <div className="text-center mb-10 max-w-3xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">How to create a QR code online for free</h2>
+          <p className="text-muted-foreground mt-3">
+            Whether you want to generate a QR code for a URL, a WiFi network, a business card, or a restaurant menu,
+            the process is the same. It takes under 30 seconds and everything happens in your browser.
+          </p>
+        </div>
+        <div className="grid gap-6 md:grid-cols-4">
+          {[
+            { n: '1', t: 'Pick a QR type', d: 'Choose from URL, plain text, email, phone, SMS, WiFi network, business card (vCard), or food menu. Each type has its own smart form to collect the right details.' },
+            { n: '2', t: 'Fill in the details', d: 'Enter your content. The QR code updates live as you type so you can see exactly what will be generated before you download.' },
+            { n: '3', t: 'Customize (optional)', d: 'Change the foreground and background colors, toggle transparent background, and add your logo in the center. Error correction is auto-boosted so the QR still scans.' },
+            { n: '4', t: 'Download', d: 'Pick a size (256 – 2048 px) and format (PNG or SVG), then download. Your QR is static, never expires, and works forever — even if we go offline.' },
+          ].map((s) => (
+            <div key={s.n} className="rounded-xl border border-border/70 bg-card p-5">
+              <div className="h-9 w-9 rounded-full bg-primary text-primary-foreground grid place-items-center font-semibold mb-3">
+                {s.n}
+              </div>
+              <h3 className="font-semibold mb-1">{s.t}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">{s.d}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Use cases */}
+      <section id="use-cases-create" className="container mx-auto px-4 py-16 border-t border-border/60">
+        <div className="text-center mb-10 max-w-3xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">What can you use a free QR code generator for?</h2>
+          <p className="text-muted-foreground mt-3">
+            QR codes are one of the easiest ways to move information from print to phone. Here are the most popular
+            things people generate with QR Resizer.
+          </p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          {[
+            { t: 'Business card QR', d: 'Generate a vCard QR that saves your name, company, phone, and email straight to someone\u2019s contacts when they scan it.' },
+            { t: 'WiFi share QR', d: 'Create a WiFi QR code for your café, office, guest room, or Airbnb. Guests scan and join the network without typing a password.' },
+            { t: 'Restaurant menu QR', d: 'Turn a link to your digital menu (a PDF, Google Doc, or your website) into a QR code for tables, packaging, and takeaway bags.' },
+            { t: 'Marketing & flyers', d: 'Add a branded QR (with your logo and colors) to posters, brochures, and social ads that drives people to your landing page.' },
+            { t: 'Event check-in', d: 'Encode a URL to your event page, RSVP form, or map location so attendees can find everything from one scan.' },
+            { t: 'Product packaging', d: 'Link customers directly to product manuals, warranty info, videos, or reorder pages by printing a permanent QR on the box.' },
+          ].map((u) => (
+            <div key={u.t} className="rounded-xl border border-border/70 bg-card p-5">
+              <h3 className="font-semibold mb-1">{u.t}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">{u.d}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* FAQ */}
       <section id="faq" className="container mx-auto px-4 py-12 border-t border-border/60">
         <div className="text-center mb-8 max-w-3xl mx-auto">
           <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">QR generator FAQ</h2>
+          <p className="text-muted-foreground mt-3">Common questions about generating QR codes online.</p>
         </div>
         <div className="max-w-3xl mx-auto grid gap-3">
           {[
-            { q: 'How do I create a QR code for free?', a: 'Pick a type above, fill in the details, optionally customize the colors and add your logo, then click Download. No signup, no ads, no watermark.' },
-            { q: 'Do these QR codes expire?', a: 'No. These are static QR codes — the content is baked into the pixels. They keep working forever and never depend on our server.' },
-            { q: 'Can I add a logo to the center?', a: 'Yes. Upload any PNG, JPG or SVG logo. Error correction is automatically bumped to H so the QR remains fully scannable.' },
-            { q: 'What is a WiFi QR code?', a: 'A special QR that contains your network name, password and encryption type. Anyone who scans it (iPhone, Android) joins your network without typing anything.' },
-            { q: 'What is a vCard QR code?', a: 'A QR that contains contact details (name, phone, email, company). When scanned, the phone offers to save the person to the address book. Great for business cards.' },
-            { q: 'Will my custom colors still scan?', a: 'Yes, as long as you keep good contrast — a dark foreground on a light background. Avoid inverting the colors and avoid low-contrast palettes.' },
+            { q: 'How do I generate a QR code for free?', a: 'Pick a type above, fill in the details, optionally customize the colors and add your logo, then click Download. No signup, no ads, no watermark. It takes under 30 seconds.' },
+            { q: 'What is the difference between creating and resizing a QR code?', a: 'Creating means generating a brand-new QR from scratch (you provide the URL, WiFi credentials, contact details, etc.). Resizing means you already have a QR image and want to regenerate it at a higher resolution — no data entry required. QR Resizer does both, free.' },
+            { q: 'Do QR codes generated here expire?', a: 'No. These are static QR codes — the content is encoded directly into the pixels. They keep working forever and never depend on our server. That is different from paid "dynamic QR" services which route through their server and can stop working if you cancel or the service shuts down.' },
+            { q: 'Can I add a logo to the center of my QR code?', a: 'Yes. Upload any PNG, JPG, or SVG logo. Error correction is automatically raised to H (~30%) so the QR remains fully scannable even with the logo covering the center.' },
+            { q: 'Can I download a QR code with a transparent background?', a: 'Yes. Check the "Transparent background" option in the Style section. Both PNG and SVG downloads will have no white square around the QR, so you can drop it onto colored backgrounds, photos, or branded designs.' },
+            { q: 'What is a WiFi QR code?', a: 'A special QR that contains your network name (SSID), password, and encryption type (WPA, WEP, or none). When someone scans it with an iPhone or Android device, their phone offers to join the network without typing anything.' },
+            { q: 'What is a business card QR code (vCard)?', a: 'A QR containing structured contact details — full name, company, job title, phone, email, website. When scanned, the phone offers to save the person straight to the address book. Great for the back of your business card.' },
+            { q: 'How do I make a QR code for a restaurant menu?', a: 'Pick the "Food Menu" type, enter your restaurant name and paste the link to your online menu (hosted on your website, Google Drive, or Dropbox). Print the resulting QR on tables, takeout bags, or your window.' },
+            { q: 'Will my custom colors still scan?', a: 'Yes, as long as you keep good contrast — dark foreground on a light background. Avoid inverting the colors (light-on-dark can confuse some older scanners) and avoid low-contrast palettes.' },
+            { q: 'PNG or SVG — which format should I choose?', a: 'Choose PNG for social media, websites, screens, and most printing. Choose SVG when you need infinite scalability without quality loss — ideal for large banners, packaging, or business cards you may resize later.' },
+            { q: 'Is my content sent to a server?', a: 'No. All QR generation happens locally in your browser using JavaScript. The content you type, the logo you upload, and the generated QR image never leave your device.' },
           ].map((f) => (
             <details key={f.q} className="group rounded-xl border border-border/70 bg-card p-5 open:shadow-sm">
               <summary className="cursor-pointer list-none font-medium flex items-center justify-between gap-4">
@@ -712,6 +775,24 @@ export default function CreatePage() {
               <div className="mt-3 text-sm text-muted-foreground leading-relaxed">{f.a}</div>
             </details>
           ))}
+        </div>
+      </section>
+
+      {/* SEO closing paragraph */}
+      <section className="container mx-auto px-4 py-16 border-t border-border/60">
+        <div className="max-w-3xl mx-auto text-center text-sm text-muted-foreground leading-relaxed space-y-3">
+          <p>
+            <strong className="text-foreground">QR Resizer</strong> is a fast, free online QR code generator that runs
+            entirely in your browser. Create custom QR codes for URLs, plain text, email, phone numbers, SMS, WiFi
+            networks, business cards, and restaurant menus. Add your logo, pick any brand colors, use a transparent
+            background, and export as high-resolution PNG (up to 2048×2048) or infinitely-scalable SVG. Every QR is
+            static and permanent — no signup, no ads, no watermarks, and no expiry.
+          </p>
+          <p>
+            Already have a QR code that&apos;s too blurry or too small? Use our{' '}
+            <Link href="/" className="underline text-foreground">free QR code resizer</Link> to regenerate any existing
+            QR at higher resolution.
+          </p>
         </div>
       </section>
 
