@@ -113,6 +113,7 @@ export default function App() {
   const [decodedContent, setDecodedContent] = useState('')
   const [size, setSize] = useState(1024)
   const [format, setFormat] = useState('png')
+  const [bgTransparent, setBgTransparent] = useState(false)
   const [generatedUrl, setGeneratedUrl] = useState('')
   const [generating, setGenerating] = useState(false)
   const [dragOver, setDragOver] = useState(false)
@@ -248,10 +249,11 @@ export default function App() {
     setGenerating(true)
     setGeneratedUrl('')
     try {
+      const light = bgTransparent ? '#00000000' : '#ffffffff'
       const opts = {
         errorCorrectionLevel: 'H',
         margin: 2,
-        color: { dark: '#000000ff', light: '#ffffffff' },
+        color: { dark: '#000000ff', light },
       }
       if (format === 'png') {
         const url = await QRCode.toDataURL(decodedContent, {
@@ -261,11 +263,16 @@ export default function App() {
         })
         setGeneratedUrl(url)
       } else {
-        const svgString = await QRCode.toString(decodedContent, {
+        let svgString = await QRCode.toString(decodedContent, {
           ...opts,
           type: 'svg',
           width: size,
         })
+        if (bgTransparent) {
+          svgString = svgString
+            .replace(/(<rect[^>]*fill=")#00000000("[^>]*\/>)/i, '$1none$2')
+            .replace(/(<path[^>]*fill=")#00000000("[^>]*\/>)/gi, '$1none$2')
+        }
         const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' })
         const url = URL.createObjectURL(blob)
         setGeneratedUrl(url)
@@ -275,14 +282,14 @@ export default function App() {
     } finally {
       setGenerating(false)
     }
-  }, [decodedContent, size, format])
+  }, [decodedContent, size, format, bgTransparent])
 
-  // Auto-generate on success and whenever size/format change.
+  // Auto-generate on success and whenever size/format/bg change.
   useEffect(() => {
     if (status === 'success' && decodedContent) {
       generate()
     }
-  }, [status, decodedContent, size, format, generate])
+  }, [status, decodedContent, size, format, bgTransparent, generate])
 
   const downloadFile = () => {
     if (!generatedUrl) return
@@ -319,6 +326,18 @@ export default function App() {
             <Badge variant="secondary" className="ml-2 hidden sm:inline-flex">100% Browser</Badge>
           </div>
           <nav className="flex items-center gap-2">
+            <a
+              href="/"
+              className="text-sm font-medium px-3 py-1.5 rounded-md bg-secondary"
+            >
+              Resize
+            </a>
+            <a
+              href="/create"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-md"
+            >
+              Create
+            </a>
             <Button size="sm" onClick={scrollToUpload} className="ml-2">
               Resize QR
             </Button>
@@ -434,7 +453,16 @@ export default function App() {
                       {size}px · {format.toUpperCase()}
                     </Badge>
                   </div>
-                  <div className="rounded-xl border bg-white p-4 grid place-items-center min-h-[220px] relative overflow-hidden">
+                  <div
+                    className="rounded-xl border p-4 grid place-items-center min-h-[220px] relative overflow-hidden"
+                    style={bgTransparent ? {
+                      backgroundImage:
+                        'linear-gradient(45deg, #d4d4d8 25%, transparent 25%), linear-gradient(-45deg, #d4d4d8 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #d4d4d8 75%), linear-gradient(-45deg, transparent 75%, #d4d4d8 75%)',
+                      backgroundSize: '20px 20px',
+                      backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0',
+                      backgroundColor: '#f4f4f5',
+                    } : { background: '#ffffff' }}
+                  >
                     {generating && (
                       <div className="absolute inset-0 grid place-items-center bg-white/70 backdrop-blur-sm z-10">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -476,6 +504,16 @@ export default function App() {
                       </Select>
                     </div>
                   </div>
+
+                  <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={bgTransparent}
+                      onChange={(e) => setBgTransparent(e.target.checked)}
+                      className="h-4 w-4"
+                    />
+                    <span>Transparent background <span className="text-xs">(no white square around the QR)</span></span>
+                  </label>
 
                   <div className="flex flex-col sm:flex-row gap-2">
                     <Button className="flex-1" size="lg" onClick={downloadFile} disabled={!generatedUrl || generating}>
@@ -618,8 +656,9 @@ export default function App() {
             <span>QR Resizer · v1.0</span>
           </div>
           <div className="flex items-center gap-5">
+            <a href="/" className="hover:text-foreground">Resize a QR</a>
+            <a href="/create" className="hover:text-foreground">Create a QR</a>
             <a href="#" className="hover:text-foreground">Privacy</a>
-            <a href="#" className="hover:text-foreground">About</a>
           </div>
         </div>
       </footer>
