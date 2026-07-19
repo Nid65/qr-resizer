@@ -1,5 +1,6 @@
 import './globals.css'
 import { Providers } from './providers'
+import { Analytics } from '@vercel/analytics/next'
 
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
@@ -223,6 +224,7 @@ export default function RootLayout({ children }) {
       </head>
       <body className="min-h-screen bg-background text-foreground antialiased">
         <Providers>{children}</Providers>
+        <Analytics />
       </body>
     </html>
   )
