@@ -1,16 +1,25 @@
 export const metadata = {
-  title: 'Free QR Code Generator — Create Custom QR Codes with Logo & Colors',
+  title: 'QR Code Generator with Logo — Free, Custom Colors, PNG & SVG',
   description:
-    'Free online QR code generator. Create custom static QR codes for URLs, text, email, phone, SMS, WiFi, and contact cards. Add your logo, custom colors, and export as high-resolution PNG or scalable SVG. 100% browser-based, no signup, no ads. QR codes never expire.',
+    'Create custom QR codes with your logo in the center — 100% free. Add brand colors, transparent background, and export up to 2048×2048 PNG or scalable SVG. URL, WiFi, business card, food menu QR codes and more. No signup, no expiry, no watermark. Everything runs in your browser.',
   keywords: [
+    'QR code generator with logo',
+    'QR code with logo',
+    'create QR code with logo',
+    'add logo to QR code',
+    'custom logo QR code',
+    'branded QR code',
     'QR code generator',
     'free QR code generator',
     'create QR code',
+    'generate QR code',
     'custom QR code',
-    'QR code with logo',
     'colored QR code',
+    'transparent QR code',
     'WiFi QR code generator',
     'vCard QR code generator',
+    'business card QR code',
+    'food menu QR code',
     'QR code maker',
     'QR code creator online',
     'no signup QR generator',
@@ -41,10 +50,18 @@ const faqLd = {
   mainEntity: [
     {
       '@type': 'Question',
+      name: 'How do I generate a QR code with a logo for free?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Fill in your content (URL, WiFi, business card, etc.), click "Upload logo" in the Style section, pick a PNG, JPG or SVG file, then click Download. QR Resizer automatically raises the error-correction level to H so your QR still scans reliably with the logo in the center. Most QR generators charge for logo overlays — here it is always free with no watermark or signup.',
+      },
+    },
+    {
+      '@type': 'Question',
       name: 'How do I create a QR code for free?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Pick a QR type (URL, text, email, phone, SMS, WiFi, or contact card), fill in the fields, optionally customize the colors and add a logo, then click Download. The whole thing runs in your browser — no signup, no ads, no expiry.',
+        text: 'Pick a QR type (URL, text, email, phone, SMS, WiFi, business card, or food menu), fill in the fields, optionally customize the colors and add a logo, then click Download. The whole thing runs in your browser — no signup, no ads, no expiry.',
       },
     },
     {
@@ -52,15 +69,15 @@ const faqLd = {
       name: 'Do QR codes created here expire?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'No. These are static QR codes — the content is encoded directly into the QR image itself. They will keep working forever, even if this website disappears. That is different from “dynamic” QR codes from paid services, which route through a company server and can stop working if you cancel or the service shuts down.',
+        text: 'No. These are static QR codes — the content is encoded directly into the QR image itself. They will keep working forever, even if this website disappears. That is different from "dynamic" QR codes from paid services, which route through a company server and can stop working if you cancel or the service shuts down.',
       },
     },
     {
       '@type': 'Question',
-      name: 'Can I add my logo to the QR code?',
+      name: 'How big should the logo be on my QR code?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes. Upload any PNG, JPG or SVG logo and it will be placed in the center of the QR. QR Resizer automatically uses the highest error-correction level so the code stays fully scannable with the logo covering up to ~30% of the surface.',
+        text: 'QR Resizer sizes the logo automatically to about 22% of the QR area — the sweet spot for scannability. With error-correction level H, up to about 30% of the QR can be obscured, so there is a small safety margin.',
       },
     },
     {
