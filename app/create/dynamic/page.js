@@ -132,6 +132,33 @@ export default function DynamicPreviewPage() {
 
                 <div className="rounded-lg border p-4 space-y-3 bg-muted/20">
                   <div className="text-xs font-medium flex items-center gap-1.5">
+                    <span>Routing mode</span>
+                    <Badge variant="secondary" className="text-[9px]">CHOOSE ONE</Badge>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { v: 'instant', l: 'Instant redirect', d: 'Straight to one URL' },
+                      { v: 'chooser', l: 'Chooser page', d: '2–6 links, users pick' },
+                      { v: 'device', l: 'Device split', d: 'iOS → A · Android → B' },
+                      { v: 'ab', l: 'A/B split', d: '50/50 test between two URLs' },
+                    ].map((m) => (
+                      <button
+                        key={m.v}
+                        type="button"
+                        className="rounded-md border border-border/70 hover:border-primary/40 hover:bg-primary/5 text-left p-2.5 text-xs transition-all"
+                      >
+                        <div className="font-medium text-foreground">{m.l}</div>
+                        <div className="text-[10px] text-muted-foreground">{m.d}</div>
+                      </button>
+                    ))}
+                  </div>
+                  <Link href="/r/preview" className="text-[11px] text-primary hover:underline inline-flex items-center gap-1">
+                    See what each routing mode looks like on the scanner&apos;s phone <ArrowRight className="h-3 w-3" />
+                  </Link>
+                </div>
+
+                <div className="rounded-lg border p-4 space-y-3 bg-muted/20">
+                  <div className="text-xs font-medium flex items-center gap-1.5">
                     <span>Advanced options</span>
                     <Badge variant="secondary" className="text-[9px]">PRO</Badge>
                   </div>
