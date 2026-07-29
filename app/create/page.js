@@ -306,7 +306,10 @@ export default function CreatePage() {
             <div className="h-9 w-9 rounded-lg bg-primary text-primary-foreground grid place-items-center shadow-sm">
               <QrCode className="h-5 w-5" />
             </div>
-            <div className="font-semibold tracking-tight">QR Resizer</div>
+            <div className="flex flex-col leading-tight">
+              <div className="font-semibold tracking-tight">QR Sizer</div>
+              <div className="text-[10px] text-muted-foreground hidden sm:block">Create · Optimise · Share</div>
+            </div>
           </Link>
           <nav className="flex items-center gap-2">
             <Link
@@ -327,17 +330,24 @@ export default function CreatePage() {
 
       {/* Hero */}
       <section className="container mx-auto px-4 pt-14 pb-6 md:pt-16 text-center">
-        <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-medium text-primary shadow-sm">
-          <Sparkles className="h-3.5 w-3.5" />
-          Now free: add your logo, colors &amp; transparent background
+        <div className="inline-flex flex-wrap items-center justify-center gap-2 mb-3">
+          <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs font-medium text-primary shadow-sm">
+            <Sparkles className="h-3.5 w-3.5" />
+            Static QR · Free · Never expires
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full border border-border/60 bg-background px-3 py-1 text-[11px] text-muted-foreground">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Dynamic QR coming soon
+          </span>
         </div>
-        <h1 className="mt-5 text-4xl md:text-5xl font-bold tracking-tight">
-          Free QR Code Generator{' '}
+        <h1 className="mt-2 text-4xl md:text-5xl font-bold tracking-tight">
+          Free Static QR Code Generator{' '}
           <span className="text-primary">with Logo</span>
         </h1>
         <p className="mt-4 mx-auto max-w-2xl text-base md:text-lg text-muted-foreground">
           Create custom QR codes with your logo in the center and your brand colors on the outside. Generate QR codes
-          for URLs, WiFi networks, business cards, food menus, and more — all in your browser. QR codes never expire.
+          for URLs, WiFi networks, business cards, food menus, and more — all in your browser.
+          {' '}<strong className="text-foreground">Static QR codes never expire</strong> and never depend on our server.
         </p>
         <p className="mt-3 text-xs text-muted-foreground">
           Already have a QR image? <Link href="/" className="underline underline-offset-2 hover:text-foreground">Resize an existing QR code</Link>{' '}instead.
@@ -752,6 +762,57 @@ export default function CreatePage() {
         </div>
       </section>
 
+      {/* Static vs Dynamic explainer */}
+      <section id="static-vs-dynamic" className="container mx-auto px-4 py-16 border-t border-border/60">
+        <div className="text-center mb-10 max-w-3xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">Static vs Dynamic QR codes</h2>
+          <p className="text-muted-foreground mt-3">
+            QR Sizer currently generates <strong className="text-foreground">static QR codes</strong> — the best choice for
+            print, permanence and privacy. Dynamic QR codes are coming soon for people who need editable destinations and scan analytics.
+          </p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 max-w-4xl mx-auto">
+          <div className="rounded-xl border border-primary/30 bg-primary/5 p-6">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary text-primary-foreground font-semibold uppercase tracking-wide">Available now</span>
+              <h3 className="font-semibold">Static QR</h3>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+              The data is baked directly into the QR image. Print it once, works forever — even if this website goes offline.
+            </p>
+            <ul className="space-y-1.5 text-sm text-muted-foreground">
+              <li className="flex gap-2"><span className="text-primary">✓</span> Never expires</li>
+              <li className="flex gap-2"><span className="text-primary">✓</span> No server dependency</li>
+              <li className="flex gap-2"><span className="text-primary">✓</span> 100% private (no scan tracking)</li>
+              <li className="flex gap-2"><span className="text-primary">✓</span> Free forever, no signup</li>
+              <li className="flex gap-2 text-muted-foreground/70"><span>—</span> Destination is locked once printed</li>
+              <li className="flex gap-2 text-muted-foreground/70"><span>—</span> No scan analytics</li>
+            </ul>
+          </div>
+          <div className="rounded-xl border border-dashed border-border/70 bg-card p-6 opacity-80">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-semibold uppercase tracking-wide">Coming soon</span>
+              <h3 className="font-semibold">Dynamic QR</h3>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed mb-3">
+              The QR points to a short link we manage — you can edit the destination anytime and see scan stats.
+            </p>
+            <ul className="space-y-1.5 text-sm text-muted-foreground">
+              <li className="flex gap-2"><span className="text-primary">✓</span> Edit destination after printing</li>
+              <li className="flex gap-2"><span className="text-primary">✓</span> Scan analytics (city, device, time)</li>
+              <li className="flex gap-2"><span className="text-primary">✓</span> Password protection &amp; expiry</li>
+              <li className="flex gap-2"><span className="text-primary">✓</span> A/B testing &amp; geo-targeting</li>
+              <li className="flex gap-2 text-muted-foreground/70"><span>—</span> Requires an account</li>
+              <li className="flex gap-2 text-muted-foreground/70"><span>—</span> Depends on our servers staying online</li>
+            </ul>
+          </div>
+        </div>
+        <p className="text-center text-xs text-muted-foreground mt-6">
+          <strong className="text-foreground">Which do you need?</strong> For business cards, packaging, and anything permanent — static.
+          For campaigns you may update, retargeting, or attribution — dynamic (soon).
+        </p>
+      </section>
+
       {/* Dedicated logo section */}
       <section id="qr-with-logo" className="container mx-auto px-4 py-16 border-t border-border/60">
         <div className="grid gap-10 md:grid-cols-2 items-center max-w-5xl mx-auto">
@@ -764,7 +825,7 @@ export default function CreatePage() {
             </h2>
             <p className="text-muted-foreground leading-relaxed mb-4">
               Turn any plain black-and-white QR into a branded QR code with your logo in the center.
-              QR Resizer automatically raises the error-correction level so the QR still scans perfectly,
+              QR Sizer automatically raises the error-correction level so the QR still scans perfectly,
               even when the logo covers up to ~30% of the code.
             </p>
             <ul className="space-y-2 text-sm text-muted-foreground">
@@ -845,7 +906,7 @@ export default function CreatePage() {
           <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">What can you use a free QR code generator for?</h2>
           <p className="text-muted-foreground mt-3">
             QR codes are one of the easiest ways to move information from print to phone. Here are the most popular
-            things people generate with QR Resizer.
+            things people generate with QR Sizer.
           </p>
         </div>
         <div className="grid gap-4 md:grid-cols-3">
@@ -873,11 +934,11 @@ export default function CreatePage() {
         </div>
         <div className="max-w-3xl mx-auto grid gap-3">
           {[
-            { q: 'How do I generate a QR code with a logo for free?', a: 'Fill in your content (URL, WiFi, business card, etc.), click "Upload logo" in the Style section, pick a PNG/JPG/SVG file, then Download. QR Resizer automatically raises the error-correction level to H so your QR still scans with the logo in the center. Most QR generators charge for logo overlays — here it is always free with no watermark or signup.' },
+            { q: 'How do I generate a QR code with a logo for free?', a: 'Fill in your content (URL, WiFi, business card, etc.), click "Upload logo" in the Style section, pick a PNG/JPG/SVG file, then Download. QR Sizer automatically raises the error-correction level to H so your QR still scans with the logo in the center. Most QR generators charge for logo overlays — here it is always free with no watermark or signup.' },
             { q: 'How do I generate a QR code for free?', a: 'Pick a type above, fill in the details, optionally customize the colors and add your logo, then click Download. No signup, no ads, no watermark. It takes under 30 seconds.' },
-            { q: 'What is the difference between creating and resizing a QR code?', a: 'Creating means generating a brand-new QR from scratch (you provide the URL, WiFi credentials, contact details, etc.). Resizing means you already have a QR image and want to regenerate it at a higher resolution — no data entry required. QR Resizer does both, free.' },
+            { q: 'What is the difference between creating and resizing a QR code?', a: 'Creating means generating a brand-new QR from scratch (you provide the URL, WiFi credentials, contact details, etc.). Resizing means you already have a QR image and want to regenerate it at a higher resolution — no data entry required. QR Sizer does both, free.' },
             { q: 'Do QR codes generated here expire?', a: 'No. These are static QR codes — the content is encoded directly into the pixels. They keep working forever and never depend on our server. That is different from paid "dynamic QR" services which route through their server and can stop working if you cancel or the service shuts down.' },
-            { q: 'How big should the logo be on a QR code?', a: 'QR Resizer sizes your logo automatically to cover about 22% of the QR area — the sweet spot that keeps the code fully scannable. With error correction level H, up to ~30% of the QR can be obscured, so there is a small safety margin.' },
+            { q: 'How big should the logo be on a QR code?', a: 'QR Sizer sizes your logo automatically to cover about 22% of the QR area — the sweet spot that keeps the code fully scannable. With error correction level H, up to ~30% of the QR can be obscured, so there is a small safety margin.' },
             { q: 'Can I download a QR code with a transparent background?', a: 'Yes. Check the "Transparent background" option in the Style section. Both PNG and SVG downloads will have no white square around the QR, so you can drop it onto colored backgrounds, photos, or branded designs.' },
             { q: 'What is a WiFi QR code?', a: 'A special QR that contains your network name (SSID), password, and encryption type (WPA, WEP, or none). When someone scans it with an iPhone or Android device, their phone offers to join the network without typing anything.' },
             { q: 'What is a business card QR code (vCard)?', a: 'A QR containing structured contact details — full name, company, job title, phone, email, website. When scanned, the phone offers to save the person straight to the address book. Great for the back of your business card.' },
@@ -901,7 +962,7 @@ export default function CreatePage() {
       <section className="container mx-auto px-4 py-16 border-t border-border/60">
         <div className="max-w-3xl mx-auto text-center text-sm text-muted-foreground leading-relaxed space-y-3">
           <p>
-            <strong className="text-foreground">QR Resizer</strong> is a fast, free online QR code generator that runs
+            <strong className="text-foreground">QR Sizer</strong> is a fast, free online QR code generator that runs
             entirely in your browser. Create custom QR codes for URLs, plain text, email, phone numbers, SMS, WiFi
             networks, business cards, and restaurant menus. Add your logo, pick any brand colors, use a transparent
             background, and export as high-resolution PNG (up to 2048×2048) or infinitely-scalable SVG. Every QR is
@@ -920,7 +981,7 @@ export default function CreatePage() {
         <div className="container mx-auto px-4 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <QrCode className="h-4 w-4" />
-            <span>QR Resizer · v1.0</span>
+            <span>QR Sizer · v1.0</span>
           </div>
           <div className="flex items-center gap-5">
             <Link href="/" className="hover:text-foreground">Resize a QR</Link>

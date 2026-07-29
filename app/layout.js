@@ -6,18 +6,18 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ||
   'https://qr-sizer.com'
 
-const TITLE = 'QR Resizer — Regenerate any QR code in high quality (PNG & SVG)'
+const TITLE = 'QR Sizer — Create, Resize & Share QR Codes (Free · No Signup)'
 const DESCRIPTION =
-  'Free online QR code resizer. Upload any blurry or low-resolution QR code image and instantly regenerate a crisp, high-resolution PNG or SVG up to 2048×2048 px. 100% browser-based — nothing is ever uploaded to a server. No signup, no ads.'
+  'Free online QR code platform. Create custom QR codes with your logo and brand colors, or resize an existing blurry QR into a crisp high-resolution PNG or SVG. Print sizes from 2 cm business cards to 5 cm labels. 100% browser-based, nothing ever uploaded. No signup, no ads, no expiry.'
 
 export const metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: TITLE,
-    template: '%s | QR Resizer',
+    template: '%s | QR Sizer',
   },
   description: DESCRIPTION,
-  applicationName: 'QR Resizer',
+  applicationName: 'QR Sizer',
   authors: [{ name: 'Nid65', url: 'https://github.com/Nid65' }],
   creator: 'Nid65',
   publisher: 'Nid65',
@@ -64,7 +64,7 @@ export const metadata = {
     type: 'website',
     locale: 'en_US',
     url: SITE_URL,
-    siteName: 'QR Resizer',
+    siteName: 'QR Sizer',
     title: TITLE,
     description: DESCRIPTION,
     images: [
@@ -72,7 +72,7 @@ export const metadata = {
         url: '/og.svg',
         width: 1200,
         height: 630,
-        alt: 'QR Resizer — Regenerate any QR code in high quality',
+        alt: 'QR Sizer — Create, resize and share QR codes',
       },
     ],
   },
@@ -106,7 +106,7 @@ export const viewport = {
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebApplication',
-  name: 'QR Resizer',
+  name: 'QR Sizer',
   applicationCategory: 'UtilitiesApplication',
   operatingSystem: 'Any (web browser)',
   browserRequirements: 'Requires JavaScript. Requires HTML5.',
@@ -141,15 +141,15 @@ const faqLd = {
       name: 'How do I resize a QR code online for free?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Upload your existing QR code image to QR Resizer, wait a moment for it to be decoded, choose your desired size (up to 2048 pixels) and format (PNG or SVG), and click Download. The whole process is 100% free, requires no signup, and completes in under 30 seconds.',
+        text: 'Upload your existing QR code image to QR Sizer, wait a moment for it to be decoded, choose your desired size (up to 2048 pixels) and format (PNG or SVG), and click Download. The whole process is 100% free, requires no signup, and completes in under 30 seconds.',
       },
     },
     {
       '@type': 'Question',
-      name: 'Is QR Resizer really free?',
+      name: 'Is QR Sizer really free?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes — QR Resizer is completely free with no ads, no watermarks, no signup, and no usage limits.',
+        text: 'Yes — QR Sizer is completely free with no ads, no watermarks, no signup, and no usage limits.',
       },
     },
     {
@@ -157,7 +157,7 @@ const faqLd = {
       name: 'Can I make a blurry QR code sharp again?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes. QR Resizer decodes the QR content and regenerates a brand-new, mathematically perfect QR code at whatever resolution you choose, so a blurry screenshot can become a razor-sharp 2048×2048 pixel print-ready image.',
+        text: 'Yes. QR Sizer decodes the QR content and regenerates a brand-new, mathematically perfect QR code at whatever resolution you choose, so a blurry screenshot can become a razor-sharp 2048×2048 pixel print-ready image.',
       },
     },
     {
@@ -197,7 +197,7 @@ const faqLd = {
       name: 'What is the smallest scannable QR code size?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'The generally accepted minimum is 2 x 2 cm (0.8 x 0.8 inches) when scanned from about 20 cm away. QR Resizer lets you regenerate at exact print sizes — 2 cm, 2.5 cm, 3 cm, 4 cm and 5 cm — at 300 DPI so the printed code stays crisp and scannable.',
+        text: 'The generally accepted minimum is 2 x 2 cm (0.8 x 0.8 inches) when scanned from about 20 cm away. QR Sizer lets you regenerate at exact print sizes — 2 cm, 2.5 cm, 3 cm, 4 cm and 5 cm — at 300 DPI so the printed code stays crisp and scannable.',
       },
     },
     {
@@ -205,7 +205,7 @@ const faqLd = {
       name: 'How do I make a QR code the right size for a business card?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Pick 2 x 2 cm or 2.5 x 2.5 cm from the size selector. QR Resizer generates the QR at 300 DPI which prints sharply at business-card size. For zero pixelation at any size, choose SVG format.',
+        text: 'Pick 2 x 2 cm or 2.5 x 2.5 cm from the size selector. QR Sizer generates the QR at 300 DPI which prints sharply at business-card size. For zero pixelation at any size, choose SVG format.',
       },
     },
     {
@@ -213,7 +213,7 @@ const faqLd = {
       name: 'What DPI should a QR code be printed at?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Aim for at least 300 DPI. QR Resizer\u2019s print sizes are pre-calculated at 300 DPI so you can drop them into any print layout without doing the math yourself.',
+        text: 'Aim for at least 300 DPI. QR Sizer\u2019s print sizes are pre-calculated at 300 DPI so you can drop them into any print layout without doing the math yourself.',
       },
     },
   ],
@@ -230,7 +230,7 @@ const howToLd = {
   tool: [{ '@type': 'HowToTool', name: 'A modern web browser' }],
   step: [
     { '@type': 'HowToStep', position: 1, name: 'Upload the QR image', text: 'Drag and drop your PNG, JPG or JPEG QR code into the upload area, or click to browse.' },
-    { '@type': 'HowToStep', position: 2, name: 'Automatic decoding', text: 'QR Resizer reads the QR code locally and displays the decoded content and detected type.' },
+    { '@type': 'HowToStep', position: 2, name: 'Automatic decoding', text: 'QR Sizer reads the QR code locally and displays the decoded content and detected type.' },
     { '@type': 'HowToStep', position: 3, name: 'Choose size and format', text: 'Select an output size (256–2048 px) and format (PNG or SVG).' },
     { '@type': 'HowToStep', position: 4, name: 'Download', text: 'Click Download to save your freshly generated, high-resolution QR code.' },
   ],

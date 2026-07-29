@@ -1,8 +1,12 @@
 export const metadata = {
-  title: 'QR Code Generator with Logo — Free, Custom Colors, PNG & SVG',
+  title: 'Static QR Code Generator with Logo — Free, Never Expires · QR Sizer',
   description:
-    'Create custom QR codes with your logo in the center — 100% free. Add brand colors, transparent background, and export up to 2048×2048 PNG or scalable SVG. URL, WiFi, business card, food menu QR codes and more. No signup, no expiry, no watermark. Everything runs in your browser.',
+    'Free static QR code generator with logo. Create custom QR codes for URLs, WiFi, business cards, food menus, and more. Add brand colors, transparent background. Print sizes from 2 cm to 5 cm. 100% browser-based, no signup, no ads. Static QR codes never expire and never depend on our server.',
   keywords: [
+    'static QR code generator',
+    'static QR code',
+    'permanent QR code',
+    'QR code that never expires',
     'QR code generator with logo',
     'QR code with logo',
     'create QR code with logo',
@@ -34,7 +38,7 @@ export const metadata = {
       'Create custom QR codes with your logo and brand colors. 100% free, no signup, no expiry. Export as PNG or SVG.',
     url: '/create',
     type: 'website',
-    images: [{ url: '/og.svg', width: 1200, height: 630, alt: 'QR Resizer — free QR code generator' }],
+    images: [{ url: '/og.svg', width: 1200, height: 630, alt: 'QR Sizer — free QR code generator' }],
   },
   twitter: {
     card: 'summary_large_image',
@@ -53,7 +57,7 @@ const faqLd = {
       name: 'How do I generate a QR code with a logo for free?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Fill in your content (URL, WiFi, business card, etc.), click "Upload logo" in the Style section, pick a PNG, JPG or SVG file, then click Download. QR Resizer automatically raises the error-correction level to H so your QR still scans reliably with the logo in the center. Most QR generators charge for logo overlays — here it is always free with no watermark or signup.',
+        text: 'Fill in your content (URL, WiFi, business card, etc.), click "Upload logo" in the Style section, pick a PNG, JPG or SVG file, then click Download. QR Sizer automatically raises the error-correction level to H so your QR still scans reliably with the logo in the center. Most QR generators charge for logo overlays — here it is always free with no watermark or signup.',
       },
     },
     {
@@ -77,7 +81,7 @@ const faqLd = {
       name: 'How big should the logo be on my QR code?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'QR Resizer sizes the logo automatically to about 22% of the QR area — the sweet spot for scannability. With error-correction level H, up to about 30% of the QR can be obscured, so there is a small safety margin.',
+        text: 'QR Sizer sizes the logo automatically to about 22% of the QR area — the sweet spot for scannability. With error-correction level H, up to about 30% of the QR can be obscured, so there is a small safety margin.',
       },
     },
     {
