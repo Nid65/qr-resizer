@@ -8,7 +8,9 @@ import { Card, CardContent } from '@/components/ui/card'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
@@ -35,13 +37,39 @@ import {
 } from 'lucide-react'
 import { toast, Toaster } from 'sonner'
 
-const SIZE_OPTIONS = [256, 512, 1024, 2048]
+const SIZE_OPTIONS = [
+  { id: 256, label: '256 × 256 px', group: 'digital' },
+  { id: 512, label: '512 × 512 px', group: 'digital' },
+  { id: 1024, label: '1024 × 1024 px', group: 'digital' },
+  { id: 2048, label: '2048 × 2048 px', group: 'digital' },
+  { id: 480, label: '2 × 2 cm  ·  ~0.8"', group: 'print', cm: 2 },
+  { id: 600, label: '2.5 × 2.5 cm  ·  ~1"', group: 'print', cm: 2.5 },
+  { id: 720, label: '3 × 3 cm  ·  ~1.2"', group: 'print', cm: 3 },
+  { id: 960, label: '4 × 4 cm  ·  ~1.6"', group: 'print', cm: 4 },
+  { id: 1200, label: '5 × 5 cm  ·  ~2"', group: 'print', cm: 5 },
+]
 const FORMAT_OPTIONS = ['png', 'svg']
 const MAX_SIZE_BYTES = 10 * 1024 * 1024 // 10 MB
 const ACCEPTED_MIME = ['image/png', 'image/jpeg', 'image/jpg']
 const ACCEPTED_EXT = ['.png', '.jpg', '.jpeg']
 
 const FAQ_ITEMS = [
+  {
+    q: 'What is the smallest scannable QR code size?',
+    a: 'The generally accepted minimum is 2 × 2 cm (0.8 × 0.8 inches) when scanned from about 20 cm away. QR Resizer lets you regenerate at exact print sizes — 2 cm, 2.5 cm, 3 cm, 4 cm and 5 cm — at 300 DPI so the printed code stays crisp and scannable.',
+  },
+  {
+    q: 'How do I make a QR code the right size for a business card?',
+    a: 'Pick 2 × 2 cm or 2.5 × 2.5 cm from the size selector. QR Resizer generates the QR at 300 DPI (~480–600 pixels) which prints sharply at business-card size. For zero pixelation at any size, choose SVG format.',
+  },
+  {
+    q: 'What DPI should a QR code be printed at?',
+    a: 'Aim for at least 300 DPI. QR Resizer\u2019s print sizes (2 cm, 2.5 cm, 3 cm, 4 cm, 5 cm) are pre-calculated at 300 DPI so you can drop them into any print layout without doing the math yourself. SVG downloads are resolution-independent and always print sharp.',
+  },
+  {
+    q: 'Can I use SVG for printing QR codes?',
+    a: 'Yes — SVG is actually the best format for print because it scales infinitely without any pixelation. When you pick a print size (2 cm, 2.5 cm, etc.), QR Resizer embeds physical centimeter dimensions inside the SVG so your design tool (Illustrator, Figma, Canva, InDesign) shows the exact print size.',
+  },
   {
     q: 'How do I resize a QR code online for free?',
     a: 'Upload your existing QR code image to QR Resizer, wait a moment for it to be decoded, choose your desired size (up to 2048 pixels) and format (PNG or SVG), and click Download. The whole process is 100% free, requires no signup, and completes in under 30 seconds.',
@@ -68,7 +96,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'What sizes can I export?',
-    a: 'Four size options are available: 256×256, 512×512, 1024×1024, and 2048×2048 pixels. Most use cases work perfectly at 1024. For high-quality print material, choose 2048 or export as SVG for unlimited scaling.',
+    a: 'Two categories: Digital (256, 512, 1024, or 2048 pixels for screens, social media, and websites) and Print (2, 2.5, 3, 4, or 5 cm at 300 DPI for business cards, product labels, stickers and print media). For unlimited scaling, export as SVG.',
   },
   {
     q: 'Will the new QR code still scan?',
@@ -273,6 +301,13 @@ export default function App() {
             .replace(/(<rect[^>]*fill=")#00000000("[^>]*\/>)/i, '$1none$2')
             .replace(/(<path[^>]*fill=")#00000000("[^>]*\/>)/gi, '$1none$2')
         }
+        // If a print size is chosen, embed physical cm dimensions in the SVG
+        const opt = SIZE_OPTIONS.find((s) => s.id === size)
+        if (opt?.group === 'print') {
+          svgString = svgString
+            .replace(/width="\d+(?:\.\d+)?"/, `width="${opt.cm}cm"`)
+            .replace(/height="\d+(?:\.\d+)?"/, `height="${opt.cm}cm"`)
+        }
         const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' })
         const url = URL.createObjectURL(blob)
         setGeneratedUrl(url)
@@ -294,7 +329,9 @@ export default function App() {
   const downloadFile = () => {
     if (!generatedUrl) return
     const base = sanitizeFilename(decodedContent, 'qr')
-    const filename = `qr-${base}-${size}.${format}`
+    const opt = SIZE_OPTIONS.find((s) => s.id === size)
+    const sizePart = opt?.group === 'print' ? `${String(opt.cm).replace('.', '-')}cm` : `${size}px`
+    const filename = `qr-${base}-${sizePart}.${format}`
     const a = document.createElement('a')
     a.href = generatedUrl
     a.download = filename
@@ -451,7 +488,12 @@ export default function App() {
                     <div className="text-sm text-muted-foreground">Resized</div>
                     <Badge className="gap-1" variant="secondary">
                       <Sparkles className="h-3 w-3" />
-                      {size}px · {format.toUpperCase()}
+                      {(() => {
+                        const opt = SIZE_OPTIONS.find((s) => s.id === size)
+                        return opt?.group === 'print'
+                          ? `${opt.cm}cm · ${format.toUpperCase()}`
+                          : `${size}px · ${format.toUpperCase()}`
+                      })()}
                     </Badge>
                   </div>
                   <div
@@ -485,9 +527,18 @@ export default function App() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {SIZE_OPTIONS.map((s) => (
-                            <SelectItem key={s} value={String(s)}>{s} × {s} px</SelectItem>
-                          ))}
+                          <SelectGroup>
+                            <SelectLabel>Digital (pixels)</SelectLabel>
+                            {SIZE_OPTIONS.filter((s) => s.group === 'digital').map((s) => (
+                              <SelectItem key={s.id} value={String(s.id)}>{s.label}</SelectItem>
+                            ))}
+                          </SelectGroup>
+                          <SelectGroup>
+                            <SelectLabel>Print (300 DPI · print-ready)</SelectLabel>
+                            {SIZE_OPTIONS.filter((s) => s.group === 'print').map((s) => (
+                              <SelectItem key={s.id} value={String(s.id)}>{s.label}</SelectItem>
+                            ))}
+                          </SelectGroup>
                         </SelectContent>
                       </Select>
                     </div>
@@ -505,6 +556,19 @@ export default function App() {
                       </Select>
                     </div>
                   </div>
+
+                  {(() => {
+                    const opt = SIZE_OPTIONS.find((s) => s.id === size)
+                    if (opt?.group === 'print') {
+                      return (
+                        <div className="rounded-md border border-primary/30 bg-primary/5 p-3 text-xs text-foreground/80">
+                          <div className="font-medium mb-1">Print-ready at {opt.cm} × {opt.cm} cm (300 DPI)</div>
+                          For business cards, product labels, and small stickers. For best print sharpness, choose SVG format so it scales without pixelation.
+                        </div>
+                      )
+                    }
+                    return null
+                  })()}
 
                   <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer select-none">
                     <input
@@ -602,12 +666,15 @@ export default function App() {
         </div>
         <div className="grid gap-4 md:grid-cols-3">
           {[
+            { t: 'Business cards (2–3 cm)', d: 'Regenerate a small, sharp QR sized exactly for business cards — 2×2 cm or 2.5×2.5 cm — that still scans reliably from arm\u2019s length.' },
+            { t: 'Product labels & stickers', d: 'Print micro QRs on packaging, product labels, hangtags, and small stickers at 2 × 2 cm without losing scannability.' },
             { t: 'Print a large poster', d: 'Blow up a QR for a shop window, event banner, or trade-show booth without pixelation.' },
-            { t: 'Add to business cards', d: 'Turn a low-resolution vCard QR into a crisp 1024 px PNG that prints sharply at any card size.' },
-            { t: 'Restaurant menu QR', d: 'Enhance a blurry menu QR into a scannable, professional-looking code for reprints.' },
+            { t: 'Restaurant menu QR', d: 'Enhance a blurry menu QR into a scannable, professional-looking code for reprints and takeaway bags.' },
             { t: 'Marketing collateral', d: 'Convert a screenshot QR into scalable SVG for brochures, flyers, and packaging.' },
             { t: 'WiFi share cards', d: 'Regenerate a WiFi-connect QR code at higher resolution for guest rooms, offices and cafés.' },
+            { t: 'Add to business cards', d: 'Turn a low-resolution vCard QR into a crisp 2.5 × 2.5 cm print at 300 DPI that scans perfectly at card size.' },
             { t: 'Fix a blurry QR image', d: 'Repair pixelated or low-quality QR screenshots so scanners read them reliably again.' },
+            { t: 'Event & wedding invites', d: 'Add a QR to printed invites at 2.5–3 cm so guests can scan for maps, RSVPs, or wedding registry links.' },
           ].map((u) => (
             <div key={u.t} className="rounded-xl border border-border/70 bg-card p-5">
               <h3 className="font-semibold mb-1">{u.t}</h3>

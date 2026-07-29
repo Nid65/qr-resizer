@@ -25,6 +25,14 @@ export const metadata = {
     'QR resizer',
     'QR code resizer',
     'resize QR code',
+    'small QR code',
+    'smallest QR code size',
+    'QR code 2cm',
+    '2x2 cm QR code',
+    'QR code for business card',
+    'QR code for print',
+    'print QR code',
+    'QR code 300 DPI',
     'upscale QR code',
     'QR code high resolution',
     'QR code PNG',
@@ -178,10 +186,34 @@ const faqLd = {
     },
     {
       '@type': 'Question',
-      name: 'Will the resized QR code still scan?',
+      name: 'What sizes can I export?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes — QR Resizer generates a fresh QR from the exact same decoded content using industry-standard encoding at error-correction level H, so it will scan reliably on any smartphone or QR reader.',
+        text: 'Two categories: Digital (256, 512, 1024, or 2048 pixels for screens, social media, and websites) and Print (2, 2.5, 3, 4, or 5 cm at 300 DPI for business cards, product labels, stickers and print media). Export as SVG for unlimited scaling.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What is the smallest scannable QR code size?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'The generally accepted minimum is 2 x 2 cm (0.8 x 0.8 inches) when scanned from about 20 cm away. QR Resizer lets you regenerate at exact print sizes — 2 cm, 2.5 cm, 3 cm, 4 cm and 5 cm — at 300 DPI so the printed code stays crisp and scannable.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How do I make a QR code the right size for a business card?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Pick 2 x 2 cm or 2.5 x 2.5 cm from the size selector. QR Resizer generates the QR at 300 DPI which prints sharply at business-card size. For zero pixelation at any size, choose SVG format.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What DPI should a QR code be printed at?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Aim for at least 300 DPI. QR Resizer\u2019s print sizes are pre-calculated at 300 DPI so you can drop them into any print layout without doing the math yourself.',
       },
     },
   ],

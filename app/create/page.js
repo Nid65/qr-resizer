@@ -12,7 +12,9 @@ import { Separator } from '@/components/ui/separator'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
@@ -38,7 +40,17 @@ import {
   Loader2,
 } from 'lucide-react'
 
-const SIZES = [256, 512, 1024, 2048]
+const SIZES = [
+  { id: 256, label: '256 × 256 px', group: 'digital' },
+  { id: 512, label: '512 × 512 px', group: 'digital' },
+  { id: 1024, label: '1024 × 1024 px', group: 'digital' },
+  { id: 2048, label: '2048 × 2048 px', group: 'digital' },
+  { id: 480, label: '2 × 2 cm  ·  ~0.8"', group: 'print', cm: 2 },
+  { id: 600, label: '2.5 × 2.5 cm  ·  ~1"', group: 'print', cm: 2.5 },
+  { id: 720, label: '3 × 3 cm  ·  ~1.2"', group: 'print', cm: 3 },
+  { id: 960, label: '4 × 4 cm  ·  ~1.6"', group: 'print', cm: 4 },
+  { id: 1200, label: '5 × 5 cm  ·  ~2"', group: 'print', cm: 5 },
+]
 const FORMATS = ['png', 'svg']
 const EC_LEVELS = [
   { value: 'L', label: 'L — Low (~7%)' },
@@ -242,6 +254,13 @@ export default function CreatePage() {
           if (logoDataUrl) {
             svg = embedLogoInSvg(svg, logoDataUrl, logoBackdrop)
           }
+          // If a print size is chosen, embed physical cm dimensions in the SVG
+          const opt = SIZES.find((s) => s.id === size)
+          if (opt?.group === 'print') {
+            svg = svg
+              .replace(/width="\d+(?:\.\d+)?"/, `width="${opt.cm}cm"`)
+              .replace(/height="\d+(?:\.\d+)?"/, `height="${opt.cm}cm"`)
+          }
           const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' })
           const url = URL.createObjectURL(blob)
           if (cancelled) return
@@ -264,7 +283,9 @@ export default function CreatePage() {
 
   const download = () => {
     if (!downloadUrl) return
-    const filename = `qr-${sanitizeName(encoded)}-${size}.${format}`
+    const opt = SIZES.find((s) => s.id === size)
+    const sizePart = opt?.group === 'print' ? `${String(opt.cm).replace('.', '-')}cm` : `${size}px`
+    const filename = `qr-${sanitizeName(encoded)}-${sizePart}.${format}`
     const a = document.createElement('a')
     a.href = downloadUrl
     a.download = filename
@@ -626,7 +647,12 @@ export default function CreatePage() {
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-muted-foreground">Live preview</div>
                   <Badge variant="secondary" className="gap-1">
-                    <Sparkles className="h-3 w-3" /> {size}px · {format.toUpperCase()}
+                    <Sparkles className="h-3 w-3" /> {(() => {
+                      const opt = SIZES.find((s) => s.id === size)
+                      return opt?.group === 'print'
+                        ? `${opt.cm}cm · ${format.toUpperCase()}`
+                        : `${size}px · ${format.toUpperCase()}`
+                    })()}
                   </Badge>
                 </div>
                 <div
@@ -659,9 +685,18 @@ export default function CreatePage() {
                     <Select value={String(size)} onValueChange={(v) => setSize(Number(v))}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {SIZES.map((s) => (
-                          <SelectItem key={s} value={String(s)}>{s} × {s} px</SelectItem>
-                        ))}
+                        <SelectGroup>
+                          <SelectLabel>Digital (pixels)</SelectLabel>
+                          {SIZES.filter((s) => s.group === 'digital').map((s) => (
+                            <SelectItem key={s.id} value={String(s.id)}>{s.label}</SelectItem>
+                          ))}
+                        </SelectGroup>
+                        <SelectGroup>
+                          <SelectLabel>Print (300 DPI · print-ready)</SelectLabel>
+                          {SIZES.filter((s) => s.group === 'print').map((s) => (
+                            <SelectItem key={s.id} value={String(s.id)}>{s.label}</SelectItem>
+                          ))}
+                        </SelectGroup>
                       </SelectContent>
                     </Select>
                   </Field>
@@ -676,6 +711,20 @@ export default function CreatePage() {
                     </Select>
                   </Field>
                 </div>
+
+                {(() => {
+                  const opt = SIZES.find((s) => s.id === size)
+                  if (opt?.group === 'print') {
+                    return (
+                      <div className="rounded-md border border-primary/30 bg-primary/5 p-3 text-xs text-foreground/80">
+                        <div className="font-medium mb-1">Print-ready at {opt.cm} × {opt.cm} cm (300 DPI)</div>
+                        Perfect for business cards, product labels, stickers and small print media. For crispest print,
+                        pick SVG format — it scales infinitely and includes physical cm units.
+                      </div>
+                    )
+                  }
+                  return null
+                })()}
 
                 <Button size="lg" className="w-full" onClick={download} disabled={!downloadUrl || busy}>
                   <Download className="mr-2 h-4 w-4" /> Download QR code{bgTransparent ? ' (transparent)' : ''}
