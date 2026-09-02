@@ -29,6 +29,7 @@ import {
   UserSquare2,
   IdCard,
   UtensilsCrossed,
+  Package,
   Type as TypeIcon,
   Download,
   Upload,
@@ -45,6 +46,8 @@ const SIZES = [
   { id: 512, label: '512 × 512 px', group: 'digital' },
   { id: 1024, label: '1024 × 1024 px', group: 'digital' },
   { id: 2048, label: '2048 × 2048 px', group: 'digital' },
+  { id: 150, label: '0.5 × 0.5"  ·  ~1.3 cm', group: 'print', cm: 1.27, inch: 0.5 },
+  { id: 300, label: '1 × 1"  ·  ~2.5 cm', group: 'print', cm: 2.54, inch: 1 },
   { id: 480, label: '2 × 2 cm  ·  ~0.8"', group: 'print', cm: 2 },
   { id: 600, label: '2.5 × 2.5 cm  ·  ~1"', group: 'print', cm: 2.5 },
   { id: 720, label: '3 × 3 cm  ·  ~1.2"', group: 'print', cm: 3 },
@@ -155,6 +158,7 @@ export default function CreatePage() {
   const [logoName, setLogoName] = useState('')
   const [size, setSize] = useState(1024)
   const [format, setFormat] = useState('png')
+  const [caption, setCaption] = useState('')
 
   const [previewUrl, setPreviewUrl] = useState('')
   const [downloadUrl, setDownloadUrl] = useState('')
@@ -222,7 +226,8 @@ export default function CreatePage() {
         if (logoDataUrl) {
           await drawLogoOnCanvas(previewCanvas, logoDataUrl, logoBackdrop)
         }
-        const previewData = previewCanvas.toDataURL('image/png')
+        const previewWithCaption = caption ? addCaptionToCanvas(previewCanvas, caption, effectiveBg, fgColor) : previewCanvas
+        const previewData = previewWithCaption.toDataURL('image/png')
         if (cancelled) return
         setPreviewUrl(previewData)
 
@@ -236,7 +241,8 @@ export default function CreatePage() {
           if (logoDataUrl) {
             await drawLogoOnCanvas(outCanvas, logoDataUrl, logoBackdrop)
           }
-          const outData = outCanvas.toDataURL('image/png')
+          const outWithCaption = caption ? addCaptionToCanvas(outCanvas, caption, effectiveBg, fgColor) : outCanvas
+          const outData = outWithCaption.toDataURL('image/png')
           if (cancelled) return
           setDownloadUrl(outData)
         } else {
@@ -279,7 +285,7 @@ export default function CreatePage() {
       cancelled = true
       clearTimeout(t)
     }
-  }, [encoded, effectiveEc, fgColor, bgColor, bgTransparent, logoDataUrl, size, format])
+  }, [encoded, effectiveEc, fgColor, bgColor, bgTransparent, logoDataUrl, size, format, caption])
 
   const download = () => {
     if (!downloadUrl) return
@@ -319,6 +325,12 @@ export default function CreatePage() {
               Create QR
             </Link>
             <Link
+              href="/create/bulk"
+              className="hidden sm:inline-flex items-center justify-center rounded-md border border-input bg-background px-3 h-9 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
+            >
+              Bulk
+            </Link>
+            <Link
               href="/"
               className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 h-9 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
             >
@@ -356,6 +368,15 @@ export default function CreatePage() {
 
       {/* Workspace */}
       <section className="container mx-auto px-4 pb-14">
+        <div className="mb-4 flex items-center justify-between rounded-lg border border-primary/20 bg-primary/5 p-3">
+          <div className="flex items-center gap-2 text-sm">
+            <Package className="h-4 w-4 text-primary" />
+            <span>Need to generate <strong>many QRs at once</strong>? Upload an Excel and download all as a ZIP.</span>
+          </div>
+          <Link href="/create/bulk">
+            <Button size="sm" variant="outline">Try Bulk mode →</Button>
+          </Link>
+        </div>
         <Card className="border-border/70 shadow-sm">
           <CardContent className="p-4 md:p-6">
             <div className="grid gap-6 md:grid-cols-2">
@@ -602,6 +623,21 @@ export default function CreatePage() {
                     />
                     <span>Transparent background <span className="text-xs">(great for overlaying on any color)</span></span>
                   </label>
+
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground mb-1 block">
+                      Caption below QR <span className="font-normal">(optional \u2014 e.g. &quot;Scan for menu&quot;)</span>
+                    </label>
+                    <Input
+                      value={caption}
+                      onChange={(e) => setCaption(e.target.value.slice(0, 60))}
+                      placeholder="Scan for menu"
+                      maxLength={60}
+                    />
+                    <p className="mt-1 text-[10px] text-muted-foreground">
+                      Rendered under the QR when downloaded. Great for printing an objective or call-to-action next to the code.
+                    </p>
+                  </div>
 
                   <Field label={`Error correction${logoDataUrl ? ' (forced to H for logo)' : ''}`}>
                     <Select value={effectiveEc} onValueChange={setEcLevel} disabled={!!logoDataUrl}>
@@ -1006,12 +1042,10 @@ async function drawLogoOnCanvas(canvas, logoDataUrl, bgColor) {
       const x = Math.round((size - logoSize) / 2)
       const bgSize = logoSize + pad * 2
       const bgX = x - pad
-      // White (or bg-colored) rounded square behind logo for scannability
       const r = Math.round(bgSize * 0.14)
       ctx.fillStyle = bgColor
       roundedRect(ctx, bgX, bgX, bgSize, bgSize, r)
       ctx.fill()
-      // Fit logo preserving aspect ratio
       const ar = img.width / img.height
       let dw = logoSize, dh = logoSize
       if (ar > 1) dh = Math.round(logoSize / ar)
@@ -1025,6 +1059,55 @@ async function drawLogoOnCanvas(canvas, logoDataUrl, bgColor) {
     img.src = logoDataUrl
   })
 }
+
+function addCaptionToCanvas(qrCanvas, text, bgColor, fgColor) {
+  const w = qrCanvas.width
+  const padding = Math.round(w * 0.04)
+  const fontSize = Math.max(14, Math.round(w * 0.045))
+  const lineHeight = Math.round(fontSize * 1.25)
+
+  // Wrap text (measure with temporary context)
+  const measureCtx = qrCanvas.getContext('2d')
+  measureCtx.font = `600 ${fontSize}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`
+  const maxWidth = w - padding * 2
+  const words = String(text).split(/\s+/)
+  const lines = []
+  let current = ''
+  for (const word of words) {
+    const test = current ? current + ' ' + word : word
+    if (measureCtx.measureText(test).width <= maxWidth) {
+      current = test
+    } else {
+      if (current) lines.push(current)
+      current = word
+    }
+  }
+  if (current) lines.push(current)
+  const maxLines = 3
+  const shown = lines.slice(0, maxLines)
+
+  const captionHeight = padding + shown.length * lineHeight + padding
+
+  const out = document.createElement('canvas')
+  out.width = w
+  out.height = qrCanvas.height + captionHeight
+  const ctx = out.getContext('2d')
+  ctx.fillStyle = bgColor === '#00000000' ? '#ffffff' : bgColor
+  ctx.fillRect(0, 0, out.width, out.height)
+  ctx.drawImage(qrCanvas, 0, 0)
+
+  ctx.font = `600 ${fontSize}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`
+  ctx.fillStyle = fgColor
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  shown.forEach((line, i) => {
+    const y = qrCanvas.height + padding + i * lineHeight + lineHeight / 2
+    ctx.fillText(line, w / 2, y)
+  })
+
+  return out
+}
+
 
 function roundedRect(ctx, x, y, w, h, r) {
   ctx.beginPath()

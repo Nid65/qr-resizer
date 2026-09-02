@@ -42,6 +42,8 @@ const SIZE_OPTIONS = [
   { id: 512, label: '512 × 512 px', group: 'digital' },
   { id: 1024, label: '1024 × 1024 px', group: 'digital' },
   { id: 2048, label: '2048 × 2048 px', group: 'digital' },
+  { id: 150, label: '0.5 × 0.5"  ·  ~1.3 cm', group: 'print', cm: 1.27, inch: 0.5 },
+  { id: 300, label: '1 × 1"  ·  ~2.5 cm', group: 'print', cm: 2.54, inch: 1 },
   { id: 480, label: '2 × 2 cm  ·  ~0.8"', group: 'print', cm: 2 },
   { id: 600, label: '2.5 × 2.5 cm  ·  ~1"', group: 'print', cm: 2.5 },
   { id: 720, label: '3 × 3 cm  ·  ~1.2"', group: 'print', cm: 3 },
@@ -371,6 +373,12 @@ export default function App() {
               className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 h-9 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
             >
               Create QR
+            </a>
+            <a
+              href="/create/bulk"
+              className="hidden sm:inline-flex items-center justify-center rounded-md border border-input bg-background px-3 h-9 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
+            >
+              Bulk
             </a>
             <a
               href="#upload"
