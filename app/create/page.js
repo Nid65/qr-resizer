@@ -626,7 +626,7 @@ export default function CreatePage() {
 
                   <div>
                     <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                      Caption below QR <span className="font-normal">(optional \u2014 e.g. &quot;Scan for menu&quot;)</span>
+                      Caption below QR <span className="font-normal">(optional — e.g. &quot;Scan for menu&quot;)</span>
                     </label>
                     <Input
                       value={caption}
