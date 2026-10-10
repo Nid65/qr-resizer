@@ -9,6 +9,23 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  PRINT_USES,
+  PRINT_USE_GROUPS,
+  getUse,
+  getSize,
+  getRecommendation,
+  detectUseFromContent,
+} from '@/lib/qr-use-cases'
+import {
   QrCode,
   Download,
   Upload,
@@ -19,17 +36,40 @@ import {
   AlertTriangle,
   Trash2,
   Package,
+  Ruler,
 } from 'lucide-react'
 import { toast, Toaster } from 'sonner'
 
-const TEMPLATE_HEADERS = ['content', 'label', 'caption', 'size_px', 'format', 'fg_color', 'bg_color']
+const TEMPLATE_HEADERS = ['content', 'label', 'caption', 'use_case', 'size_px', 'format', 'fg_color', 'bg_color']
 const TEMPLATE_ROWS = [
-  ['https://your-restaurant.com/menu', 'Menu QR', 'Scan for menu', 1024, 'png', '#000000', '#ffffff'],
-  ['WIFI:T:WPA;S:GuestNetwork;P:welcome123;;', 'Guest WiFi', 'Scan to join WiFi', 1024, 'png', '#000000', '#ffffff'],
-  ['tel:+15551234567', 'Sales Line', 'Call sales', 512, 'png', '#000000', '#ffffff'],
-  ['https://forms.gle/rsvp-form', 'Event RSVP', 'RSVP here', 600, 'png', '#1e40af', '#ffffff'],
-  ['mailto:hello@example.com', 'Email Us', 'Email us', 512, 'png', '#000000', '#ffffff'],
+  ['https://your-restaurant.com/menu', 'Menu QR', 'Scan for menu', 'menu', '', 'png', '#000000', '#ffffff'],
+  ['WIFI:T:WPA;S:GuestNetwork;P:welcome123;;', 'Guest WiFi', 'Scan to join WiFi', 'wifi-sign', '', 'png', '#000000', '#ffffff'],
+  ['tel:+15551234567', 'Sales Line', 'Call sales', 'business-card', '', 'png', '#000000', '#ffffff'],
+  ['https://forms.gle/rsvp-form', 'Event RSVP', 'RSVP here', 'poster', '', 'svg', '#1e40af', '#ffffff'],
+  ['mailto:hello@example.com', 'Email Us', 'Email us', '', 512, 'png', '#000000', '#ffffff'],
 ]
+const USE_IDS = PRINT_USES.map((u) => u.id)
+
+// Resolve the final size/format for a row, honouring (in order):
+// global override -> explicit size_px -> row use_case -> auto-detected use case -> 1024 px
+function resolveRow(r, globalUse) {
+  const useId = globalUse !== 'per-row' ? globalUse : r.use_case || (!r.size_px_raw ? detectUseFromContent(r.content) : null)
+  if (globalUse === 'per-row' && r.size_px_raw) {
+    return { ...r, size_px: r.size_px_raw, format: r.format_raw || 'png', use: null, sizeOpt: null, source: 'excel' }
+  }
+  const rec = useId ? getRecommendation(useId, r.content.length) : null
+  if (rec) {
+    return {
+      ...r,
+      size_px: rec.sizeId,
+      format: rec.format || r.format_raw || 'png',
+      use: rec.use,
+      sizeOpt: rec.size?.group === 'print' ? rec.size : null,
+      source: globalUse !== 'per-row' ? 'override' : r.use_case ? 'use_case' : 'auto',
+    }
+  }
+  return { ...r, size_px: 1024, format: r.format_raw || 'png', use: null, sizeOpt: null, source: 'default' }
+}
 
 function sanitize(s, fallback = 'qr') {
   return String(s || fallback).replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').slice(0, 50) || fallback
@@ -79,7 +119,9 @@ export default function BulkQrPage() {
   const [busy, setBusy] = useState(false)
   const [progress, setProgress] = useState({ done: 0, total: 0 })
   const [zipUrl, setZipUrl] = useState('')
+  const [globalUse, setGlobalUse] = useState('per-row')
   const fileRef = useRef(null)
+  const resolved = rows.map((r) => resolveRow(r, globalUse))
 
   const downloadTemplate = () => {
     const ws = XLSX.utils.aoa_to_sheet([
@@ -87,9 +129,19 @@ export default function BulkQrPage() {
       ...TEMPLATE_ROWS,
     ])
     // Widen columns for readability
-    ws['!cols'] = [{ wch: 40 }, { wch: 18 }, { wch: 22 }, { wch: 10 }, { wch: 8 }, { wch: 12 }, { wch: 12 }]
+    ws['!cols'] = [{ wch: 40 }, { wch: 18 }, { wch: 22 }, { wch: 16 }, { wch: 10 }, { wch: 8 }, { wch: 12 }, { wch: 12 }]
+    // Second sheet: list of valid use_case values
+    const wsUses = XLSX.utils.aoa_to_sheet([
+      ['use_case', 'description', 'recommended size'],
+      ...PRINT_USES.map((u) => {
+        const sz = getSize(u.sizeId)
+        return [u.id, u.label, sz?.group === 'print' ? `${sz.cm} x ${sz.cm} cm` : `${sz?.id} px`]
+      }),
+    ])
+    wsUses['!cols'] = [{ wch: 16 }, { wch: 34 }, { wch: 18 }]
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'QRs')
+    XLSX.utils.book_append_sheet(wb, wsUses, 'use_case values')
     XLSX.writeFile(wb, 'qr-sizer-bulk-template.xlsx')
     toast.success('Template downloaded')
   }
@@ -110,8 +162,9 @@ export default function BulkQrPage() {
           content: String(r.content || '').trim(),
           label: String(r.label || `qr-${idx + 1}`).trim(),
           caption: String(r.caption || '').trim(),
-          size_px: Math.max(128, Math.min(4096, parseInt(r.size_px, 10) || 1024)),
-          format: (['png', 'svg'].includes(String(r.format || '').toLowerCase())) ? String(r.format).toLowerCase() : 'png',
+          use_case: USE_IDS.includes(String(r.use_case || '').trim().toLowerCase()) ? String(r.use_case).trim().toLowerCase() : '',
+          size_px_raw: parseInt(r.size_px, 10) ? Math.max(128, Math.min(4096, parseInt(r.size_px, 10))) : 0,
+          format_raw: (['png', 'svg'].includes(String(r.format || '').toLowerCase())) ? String(r.format).toLowerCase() : '',
           fg_color: String(r.fg_color || '#000000').trim(),
           bg_color: String(r.bg_color || '#ffffff').trim(),
           error: '',
@@ -139,7 +192,7 @@ export default function BulkQrPage() {
     const opts = { errorCorrectionLevel: 'H', margin: 2 }
     const updated = [...rows]
     for (let i = 0; i < rows.length; i++) {
-      const r = rows[i]
+      const r = resolveRow(rows[i], globalUse)
       try {
         if (r.format === 'svg') {
           let svg = await QRCode.toString(r.content, {
@@ -149,6 +202,11 @@ export default function BulkQrPage() {
             color: { dark: r.fg_color, light: r.bg_color },
           })
           // For simplicity, caption not embedded in SVG here — SVG stays clean vector
+          if (r.sizeOpt) {
+            svg = svg
+              .replace(/width="\d+(?:\.\d+)?"/, `width="${r.sizeOpt.cm}cm"`)
+              .replace(/height="\d+(?:\.\d+)?"/, `height="${r.sizeOpt.cm}cm"`)
+          }
           zip.file(`${String(i + 1).padStart(3, '0')}-${sanitize(r.label)}.svg`, svg)
         } else {
           const canvas = document.createElement('canvas')
@@ -169,12 +227,14 @@ export default function BulkQrPage() {
     setRows(updated)
     // Add a manifest CSV to the ZIP
     const manifest = [
-      ['file', 'label', 'content', 'caption', 'size_px', 'format'],
-      ...updated.map((r, i) => [
+      ['file', 'label', 'content', 'caption', 'use_case', 'print_size', 'size_px', 'format'],
+      ...updated.map((row, i) => resolveRow(row, globalUse)).map((r, i) => [
         `${String(i + 1).padStart(3, '0')}-${sanitize(r.label)}.${r.format}`,
         r.label,
         r.content,
         r.caption,
+        r.use?.id || '',
+        r.sizeOpt ? `${r.sizeOpt.cm} x ${r.sizeOpt.cm} cm` : '',
         r.size_px,
         r.format,
       ]),
@@ -261,7 +321,7 @@ export default function BulkQrPage() {
                 <div className="h-9 w-9 rounded-full bg-primary text-primary-foreground grid place-items-center font-semibold shrink-0">1</div>
                 <div>
                   <div className="font-medium text-sm">Download the Excel template</div>
-                  <div className="text-xs text-muted-foreground">Columns: <span className="font-mono">content, label, caption, size_px, format, fg_color, bg_color</span></div>
+                  <div className="text-xs text-muted-foreground">Columns: <span className="font-mono">content, label, caption, use_case, size_px, format, fg_color, bg_color</span>. Leave <span className="font-mono">size_px</span> blank to auto-size from <span className="font-mono">use_case</span>.</div>
                 </div>
               </div>
               <Button onClick={downloadTemplate} variant="outline">
@@ -291,6 +351,44 @@ export default function BulkQrPage() {
                 onChange={onFile}
               />
             </div>
+
+            {/* Use-case override */}
+            {rows.length > 0 && (
+              <div className="rounded-lg border p-4 bg-muted/20 flex flex-col md:flex-row md:items-center gap-3" data-testid="bulk-use-case-panel">
+                <div className="flex items-start gap-3 flex-1">
+                  <Ruler className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-medium text-sm">Where will you print these?</div>
+                    <div className="text-xs text-muted-foreground">
+                      {globalUse === 'per-row'
+                        ? 'Using each row\u2019s size_px / use_case. WiFi and vCard rows without a size are auto-sized.'
+                        : (() => {
+                            const u = getUse(globalUse)
+                            const sz = getSize(u?.sizeId)
+                            return `All ${rows.length} QRs set to ${sz?.group === 'print' ? `${sz.cm} × ${sz.cm} cm` : `${sz?.id} px`}${u?.format ? ` · ${u.format.toUpperCase()}` : ''} — ${u?.why}`
+                          })()}{' '}
+                      <Link href="/qr-size-guide" className="underline underline-offset-2 hover:text-foreground">Size guide</Link>
+                    </div>
+                  </div>
+                </div>
+                <div className="md:w-72">
+                  <Select value={globalUse} onValueChange={(v) => { setGlobalUse(v); setZipUrl('') }}>
+                    <SelectTrigger data-testid="bulk-use-case-select"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="per-row">Per row (from Excel)</SelectItem>
+                      {PRINT_USE_GROUPS.map((g) => (
+                        <SelectGroup key={g}>
+                          <SelectLabel>{g}</SelectLabel>
+                          {PRINT_USES.filter((u) => u.group === g).map((u) => (
+                            <SelectItem key={u.id} value={u.id}>{u.label}</SelectItem>
+                          ))}
+                        </SelectGroup>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
 
             {/* Rows table */}
             {rows.length > 0 && (
@@ -325,13 +423,19 @@ export default function BulkQrPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {rows.map((r, i) => (
+                      {resolved.map((r, i) => (
                         <tr key={i} className={['border-t', r.error ? 'bg-destructive/5' : ''].join(' ')}>
                           <td className="p-2 text-muted-foreground">{i + 1}</td>
                           <td className="p-2 font-medium">{r.label}</td>
                           <td className="p-2 font-mono max-w-[240px] truncate" title={r.content}>{r.content}</td>
                           <td className="p-2 text-muted-foreground max-w-[140px] truncate" title={r.caption}>{r.caption || '—'}</td>
-                          <td className="p-2">{r.size_px}px</td>
+                          <td className="p-2 whitespace-nowrap">
+                            <div className="font-medium">{r.sizeOpt ? `${r.sizeOpt.cm} × ${r.sizeOpt.cm} cm` : `${r.size_px}px`}</div>
+                            <div className="text-[10px] text-muted-foreground">
+                              {r.use ? r.use.label : r.source === 'excel' ? 'From Excel' : 'Default'}
+                              {r.source === 'auto' ? ' · auto-detected' : ''}
+                            </div>
+                          </td>
                           <td className="p-2 uppercase">{r.format}</td>
                           <td className="p-2 flex items-center gap-1">
                             <span className="inline-block h-3 w-3 rounded-sm border" style={{ background: r.fg_color }} />
@@ -409,7 +513,7 @@ export default function BulkQrPage() {
         <div className="max-w-3xl mx-auto grid gap-3">
           {[
             { q: 'How many QRs can I generate at once?', a: 'There is no hard limit — the whole process runs in your browser. In practice, 500 QRs at 1024px take about 30 seconds. Larger batches work but may be slow on older devices.' },
-            { q: 'What Excel columns are supported?', a: 'content (required — the URL or data to encode), label (used in the filename), caption (optional text rendered below the QR on PNG), size_px (128 to 4096), format (png or svg), fg_color and bg_color (hex codes).' },
+            { q: 'What Excel columns are supported?', a: 'content (required — the URL or data to encode), label (used in the filename), caption (optional text rendered below the QR on PNG), use_case (e.g. business-card, menu, flyer, poster — auto-picks the recommended print size; full list in the template’s second sheet), size_px (128 to 4096, overrides use_case), format (png or svg), fg_color and bg_color (hex codes).' },
             { q: 'What content types can I use in bulk?', a: 'Anything a QR can encode: URLs, plain text, tel:+123 phone numbers, mailto:you@example.com emails, sms:, WIFI:T:WPA;S:name;P:pass;; strings, or full vCard blocks. Same as the single QR generator.' },
             { q: 'What is inside the downloaded ZIP?', a: 'One file per row named 001-your-label.png (or .svg), plus a _manifest.csv listing every generated file with its original content — great for audits and records.' },
             { q: 'Are these dynamic or static QR codes?', a: 'Bulk generates static QR codes only. The content is encoded directly into each QR image. They work forever and never expire.' },

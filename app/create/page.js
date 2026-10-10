@@ -39,21 +39,18 @@ import {
   ShieldCheck,
   Zap,
   Loader2,
+  Ruler,
+  CheckCircle2,
 } from 'lucide-react'
+import {
+  SIZES,
+  PRINT_USES,
+  PRINT_USE_GROUPS,
+  TYPE_DEFAULT_USE,
+  getRecommendation,
+  scanDistanceLabel,
+} from '@/lib/qr-use-cases'
 
-const SIZES = [
-  { id: 256, label: '256 × 256 px', group: 'digital' },
-  { id: 512, label: '512 × 512 px', group: 'digital' },
-  { id: 1024, label: '1024 × 1024 px', group: 'digital' },
-  { id: 2048, label: '2048 × 2048 px', group: 'digital' },
-  { id: 150, label: '0.5 × 0.5"  ·  ~1.3 cm', group: 'print', cm: 1.27, inch: 0.5 },
-  { id: 300, label: '1 × 1"  ·  ~2.5 cm', group: 'print', cm: 2.54, inch: 1 },
-  { id: 480, label: '2 × 2 cm  ·  ~0.8"', group: 'print', cm: 2 },
-  { id: 600, label: '2.5 × 2.5 cm  ·  ~1"', group: 'print', cm: 2.5 },
-  { id: 720, label: '3 × 3 cm  ·  ~1.2"', group: 'print', cm: 3 },
-  { id: 960, label: '4 × 4 cm  ·  ~1.6"', group: 'print', cm: 4 },
-  { id: 1200, label: '5 × 5 cm  ·  ~2"', group: 'print', cm: 5 },
-]
 const FORMATS = ['png', 'svg']
 const EC_LEVELS = [
   { value: 'L', label: 'L — Low (~7%)' },
@@ -166,6 +163,33 @@ export default function CreatePage() {
 
   const encoded = useMemo(() => buildEncodedString(type, data), [type, data])
   const effectiveEc = logoDataUrl ? 'H' : ecLevel
+
+  // ---- Use-case based size recommendation
+  const [printUse, setPrintUse] = useState('auto')
+  const activeUseId = printUse === 'auto' ? TYPE_DEFAULT_USE[type] : printUse
+  const recommendation = useMemo(
+    () => getRecommendation(activeUseId, encoded.length),
+    [activeUseId, encoded.length]
+  )
+  const encodedLenRef = useRef(0)
+  encodedLenRef.current = encoded.length
+  // Auto-pick the recommended size whenever the use case (or QR type in auto mode) changes.
+  // The user can still override the size afterwards.
+  useEffect(() => {
+    const rec = getRecommendation(activeUseId, encodedLenRef.current)
+    if (!rec) return
+    setSize(rec.sizeId)
+    if (rec.format) setFormat(rec.format)
+  }, [activeUseId])
+  const applyRecommendation = () => {
+    if (!recommendation) return
+    setSize(recommendation.sizeId)
+    if (recommendation.format) setFormat(recommendation.format)
+    toast.success(`Size set to ${recommendation.size?.label?.split('·')[0].trim()}`)
+  }
+  const isRecommendedApplied = recommendation
+    ? size === recommendation.sizeId && (!recommendation.format || format === recommendation.format)
+    : false
 
   const logoInputRef = useRef(null)
 
@@ -726,21 +750,77 @@ export default function CreatePage() {
                   )}
                 </div>
 
+                {/* Use-case picker + recommendation */}
+                <div className="rounded-lg border p-3 space-y-3 bg-muted/20" data-testid="use-case-panel">
+                  <Field label="Where will you print or share this?">
+                    <Select value={printUse} onValueChange={setPrintUse}>
+                      <SelectTrigger data-testid="use-case-select"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="auto">
+                          Auto — suggest from QR type ({TYPES.find((t) => t.value === type)?.short})
+                        </SelectItem>
+                        {PRINT_USE_GROUPS.map((g) => (
+                          <SelectGroup key={g}>
+                            <SelectLabel>{g}</SelectLabel>
+                            {PRINT_USES.filter((u) => u.group === g).map((u) => (
+                              <SelectItem key={u.id} value={u.id}>{u.label}</SelectItem>
+                            ))}
+                          </SelectGroup>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+
+                  {recommendation && (
+                    <div className="flex items-start gap-2 text-xs" data-testid="size-recommendation">
+                      <Ruler className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                      <div className="flex-1 space-y-1">
+                        <div className="text-foreground">
+                          Recommended for <strong>{recommendation.use.label}</strong>:{' '}
+                          <strong className="text-primary">
+                            {recommendation.size?.label?.split('·')[0].trim()}
+                            {recommendation.format ? ` · ${recommendation.format.toUpperCase()}` : ''}
+                          </strong>
+                        </div>
+                        <div className="text-muted-foreground">
+                          {recommendation.use.why}
+                          {recommendation.bumped && ' Bumped up one size because your QR holds a lot of data (denser pattern).'}
+                          {' '}Scan distance: {recommendation.use.distance}.{' '}
+                          <Link href="/qr-size-guide" className="underline underline-offset-2 hover:text-foreground">Size guide</Link>
+                        </div>
+                      </div>
+                      {isRecommendedApplied ? (
+                        <Badge variant="secondary" className="gap-1 shrink-0" data-testid="recommended-applied">
+                          <CheckCircle2 className="h-3 w-3 text-emerald-600" /> Applied
+                        </Badge>
+                      ) : (
+                        <Button size="sm" variant="outline" className="h-7 text-xs shrink-0" onClick={applyRecommendation} data-testid="apply-recommended">
+                          Use recommended
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Size">
                     <Select value={String(size)} onValueChange={(v) => setSize(Number(v))}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger data-testid="size-select"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
                           <SelectLabel>Digital (pixels)</SelectLabel>
                           {SIZES.filter((s) => s.group === 'digital').map((s) => (
-                            <SelectItem key={s.id} value={String(s.id)}>{s.label}</SelectItem>
+                            <SelectItem key={s.id} value={String(s.id)}>
+                              {s.label}{recommendation?.sizeId === s.id ? '  ★ Recommended' : ''}
+                            </SelectItem>
                           ))}
                         </SelectGroup>
                         <SelectGroup>
-                          <SelectLabel>Print (300 DPI · print-ready)</SelectLabel>
+                          <SelectLabel>Print (300+ DPI · print-ready)</SelectLabel>
                           {SIZES.filter((s) => s.group === 'print').map((s) => (
-                            <SelectItem key={s.id} value={String(s.id)}>{s.label}</SelectItem>
+                            <SelectItem key={s.id} value={String(s.id)}>
+                              {s.label}{recommendation?.sizeId === s.id ? '  ★ Recommended' : ''}
+                            </SelectItem>
                           ))}
                         </SelectGroup>
                       </SelectContent>
@@ -763,9 +843,9 @@ export default function CreatePage() {
                   if (opt?.group === 'print') {
                     return (
                       <div className="rounded-md border border-primary/30 bg-primary/5 p-3 text-xs text-foreground/80">
-                        <div className="font-medium mb-1">Print-ready at {opt.cm} × {opt.cm} cm (300 DPI)</div>
-                        Perfect for business cards, product labels, stickers and small print media. For crispest print,
-                        pick SVG format — it scales infinitely and includes physical cm units.
+                        <div className="font-medium mb-1">Print-ready at {opt.cm} × {opt.cm} cm</div>
+                        Scans reliably from up to <strong>~{scanDistanceLabel(opt.cm)}</strong> away (10:1 rule).
+                        For the crispest print pick SVG — it scales infinitely and includes physical cm units.
                       </div>
                     )
                   }
