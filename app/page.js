@@ -34,22 +34,28 @@ import {
   Type as TypeIcon,
   MessageSquare,
   FileImage,
+  Ruler,
 } from 'lucide-react'
 import { toast, Toaster } from 'sonner'
+import Link from 'next/link'
+import { SIZES, PRINT_USES, PRINT_USE_GROUPS, getRecommendation, scanDistanceLabel } from '@/lib/qr-use-cases'
+import SizeChart from '@/components/SizeChart'
+import RealSizePreview from '@/components/RealSizePreview'
 
-const SIZE_OPTIONS = [
-  { id: 256, label: '256 × 256 px', group: 'digital' },
-  { id: 512, label: '512 × 512 px', group: 'digital' },
-  { id: 1024, label: '1024 × 1024 px', group: 'digital' },
-  { id: 2048, label: '2048 × 2048 px', group: 'digital' },
-  { id: 150, label: '0.5 × 0.5"  ·  ~1.3 cm', group: 'print', cm: 1.27, inch: 0.5 },
-  { id: 300, label: '1 × 1"  ·  ~2.5 cm', group: 'print', cm: 2.54, inch: 1 },
-  { id: 480, label: '2 × 2 cm  ·  ~0.8"', group: 'print', cm: 2 },
-  { id: 600, label: '2.5 × 2.5 cm  ·  ~1"', group: 'print', cm: 2.5 },
-  { id: 720, label: '3 × 3 cm  ·  ~1.2"', group: 'print', cm: 3 },
-  { id: 960, label: '4 × 4 cm  ·  ~1.6"', group: 'print', cm: 4 },
-  { id: 1200, label: '5 × 5 cm  ·  ~2"', group: 'print', cm: 5 },
-]
+// Default print location for each detected QR type
+const DETECTED_TYPE_USE = {
+  URL: 'screen',
+  Email: 'screen',
+  Text: 'screen',
+  Crypto: 'screen',
+  Phone: 'business-card',
+  Contact: 'business-card',
+  SMS: 'flyer',
+  Location: 'flyer',
+  WiFi: 'wifi-sign',
+}
+
+const SIZE_OPTIONS = SIZES
 const FORMAT_OPTIONS = ['png', 'svg']
 const MAX_SIZE_BYTES = 10 * 1024 * 1024 // 10 MB
 const ACCEPTED_MIME = ['image/png', 'image/jpeg', 'image/jpg']
@@ -58,7 +64,7 @@ const ACCEPTED_EXT = ['.png', '.jpg', '.jpeg']
 const FAQ_ITEMS = [
   {
     q: 'What is the smallest scannable QR code size?',
-    a: 'The generally accepted minimum is 2 × 2 cm (0.8 × 0.8 inches) when scanned from about 20 cm away. QR Sizer lets you regenerate at exact print sizes — 2 cm, 2.5 cm, 3 cm, 4 cm and 5 cm — at 300 DPI so the printed code stays crisp and scannable.',
+    a: 'The generally accepted minimum is 2 × 2 cm (0.8 × 0.8 inches) when scanned from about 20 cm away. QR Sizer lets you regenerate at exact print sizes — 0.5\", 1\", 2 cm, 2.5 cm, 3 cm, 4 cm, 5 cm, 10 cm and 15 cm — at print-ready resolution so the printed code stays crisp and scannable.',
   },
   {
     q: 'How do I make a QR code the right size for a business card?',
@@ -98,7 +104,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'What sizes can I export?',
-    a: 'Two categories: Digital (256, 512, 1024, or 2048 pixels for screens, social media, and websites) and Print (2, 2.5, 3, 4, or 5 cm at 300 DPI for business cards, product labels, stickers and print media). For unlimited scaling, export as SVG.',
+    a: 'Two categories: Digital (256, 512, 1024, or 2048 pixels for screens, social media, and websites) and Print (0.5\", 1\", 2, 2.5, 3, 4, 5, 10 or 15 cm for business cards, labels, menus, flyers, posters and signs). Pick where you will print it and QR Sizer recommends the right size automatically. For unlimited scaling, export as SVG.',
   },
   {
     q: 'Will the new QR code still scan?',
@@ -153,6 +159,33 @@ export default function App() {
   const dropRef = useRef(null)
 
   const qrTypeInfo = useMemo(() => detectQrType(decodedContent), [decodedContent])
+
+  // ---- Use-case based size recommendation
+  const [printUse, setPrintUse] = useState('screen')
+  const [useAutoPicked, setUseAutoPicked] = useState(true)
+  const [realOpen, setRealOpen] = useState(false)
+  const recommendation = useMemo(
+    () => getRecommendation(printUse, decodedContent.length),
+    [printUse, decodedContent.length]
+  )
+  const applyUse = (useId, auto = false) => {
+    setPrintUse(useId)
+    setUseAutoPicked(auto)
+    const rec = getRecommendation(useId, decodedContent.length)
+    if (rec) {
+      setSize(rec.sizeId)
+      if (rec.format) setFormat(rec.format)
+    }
+  }
+  // Auto-select a print location from the decoded QR type
+  useEffect(() => {
+    if (!decodedContent) return
+    applyUse(DETECTED_TYPE_USE[qrTypeInfo.type] || 'screen', true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [decodedContent])
+  const isRecommendedApplied = recommendation
+    ? size === recommendation.sizeId && (!recommendation.format || format === recommendation.format)
+    : false
 
   const resetAll = () => {
     setStatus('idle')
@@ -532,6 +565,101 @@ export default function App() {
                     )}
                   </div>
 
+                  {/* Real-size preview */}
+                  {(() => {
+                    const opt = SIZE_OPTIONS.find((s) => s.id === size)
+                    const isPrint = opt?.group === 'print'
+                    return (
+                      <>
+                        <Button variant="outline" className="w-full" disabled={!generatedUrl || !isPrint} onClick={() => setRealOpen(true)} data-testid="real-size-btn">
+                          <Ruler className="mr-2 h-4 w-4" />
+                          {isPrint ? `See it at real size (${opt.cm} × ${opt.cm} cm) next to a card or phone` : 'Real-size preview — pick a print size below'}
+                        </Button>
+                        {isPrint && (
+                          <RealSizePreview
+                            open={realOpen}
+                            onOpenChange={setRealOpen}
+                            imageUrl={generatedUrl}
+                            cm={opt.cm}
+                            label={opt.label.split('·')[0].trim()}
+                            bgTransparent={bgTransparent}
+                          />
+                        )}
+                      </>
+                    )
+                  })()}
+
+                  {/* Use-case picker + recommendation */}
+                  <div className="rounded-lg border p-3 space-y-3 bg-muted/20" data-testid="use-case-panel">
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-1 block">Where will you print or share this?</label>
+                      <Select value={printUse} onValueChange={(v) => applyUse(v, false)}>
+                        <SelectTrigger data-testid="use-case-select"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {PRINT_USE_GROUPS.map((g) => (
+                            <SelectGroup key={g}>
+                              <SelectLabel>{g}</SelectLabel>
+                              {PRINT_USES.filter((u) => u.group === g).map((u) => (
+                                <SelectItem key={u.id} value={u.id}>{u.label}</SelectItem>
+                              ))}
+                            </SelectGroup>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {useAutoPicked && (
+                      <div className="-mt-1 text-[11px] text-muted-foreground flex items-center gap-1" data-testid="use-auto-note">
+                        <Sparkles className="h-3 w-3 text-primary" />
+                        Picked for you because we detected a <strong className="text-foreground font-medium">{qrTypeInfo.type}</strong> QR — change it anytime.
+                      </div>
+                    )}
+                    {recommendation && (
+                      <div className="rounded-md border border-primary/20 bg-background p-3 text-xs space-y-2" data-testid="size-recommendation">
+                        <div className="flex items-start gap-2">
+                          <Ruler className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                          <div className="flex-1 space-y-1">
+                            <div className="text-foreground">
+                              Our recommendation:{' '}
+                              <strong className="text-primary">
+                                {recommendation.size?.label?.split('·')[0].trim()}
+                                {recommendation.format ? ` · ${recommendation.format.toUpperCase()}` : ''}
+                              </strong>
+                            </div>
+                            <p className="text-muted-foreground leading-relaxed">
+                              {recommendation.use.friendly || recommendation.use.why}
+                              {recommendation.bumped && ' Your QR holds quite a bit of information, so we went one size up to keep it easy to scan.'}
+                            </p>
+                          </div>
+                          {isRecommendedApplied ? (
+                            <Badge variant="secondary" className="gap-1 shrink-0" data-testid="recommended-applied">
+                              <CheckCircle2 className="h-3 w-3 text-emerald-600" /> Applied
+                            </Badge>
+                          ) : (
+                            <Button size="sm" variant="outline" className="h-7 text-xs shrink-0" onClick={() => applyUse(printUse, useAutoPicked)} data-testid="apply-recommended">
+                              Use recommended
+                            </Button>
+                          )}
+                        </div>
+                        {!isRecommendedApplied && (
+                          <div className="text-[11px] text-amber-700 dark:text-amber-400 pl-6">
+                            You’ve picked a different size — that’s fine! Just test-scan a print before ordering in bulk.
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between pl-6 pt-1 border-t border-border/60">
+                          <span className="text-[11px] text-muted-foreground pt-1.5">Scan distance: {recommendation.use.distance}</span>
+                          <Link
+                            href={recommendation.use.guide ? `/qr-size-guide#use-case-${recommendation.use.guide}` : '/qr-size-guide'}
+                            className="text-[11px] font-medium text-primary hover:underline underline-offset-2 pt-1.5"
+                            data-testid="learn-more-size-guide"
+                          >
+                            Learn more in our Size Guide →
+                          </Link>
+                        </div>
+                      </div>
+                    )}
+                    <SizeChart activeUseId={printUse} onSelect={(id) => applyUse(id, false)} />
+                  </div>
+
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-xs text-muted-foreground mb-1 block">Size</label>
@@ -543,13 +671,13 @@ export default function App() {
                           <SelectGroup>
                             <SelectLabel>Digital (pixels)</SelectLabel>
                             {SIZE_OPTIONS.filter((s) => s.group === 'digital').map((s) => (
-                              <SelectItem key={s.id} value={String(s.id)}>{s.label}</SelectItem>
+                              <SelectItem key={s.id} value={String(s.id)}>{s.label}{recommendation?.sizeId === s.id ? '  ★ Recommended' : ''}</SelectItem>
                             ))}
                           </SelectGroup>
                           <SelectGroup>
-                            <SelectLabel>Print (300 DPI · print-ready)</SelectLabel>
+                            <SelectLabel>Print (300+ DPI · print-ready)</SelectLabel>
                             {SIZE_OPTIONS.filter((s) => s.group === 'print').map((s) => (
-                              <SelectItem key={s.id} value={String(s.id)}>{s.label}</SelectItem>
+                              <SelectItem key={s.id} value={String(s.id)}>{s.label}{recommendation?.sizeId === s.id ? '  ★ Recommended' : ''}</SelectItem>
                             ))}
                           </SelectGroup>
                         </SelectContent>
@@ -575,8 +703,8 @@ export default function App() {
                     if (opt?.group === 'print') {
                       return (
                         <div className="rounded-md border border-primary/30 bg-primary/5 p-3 text-xs text-foreground/80">
-                          <div className="font-medium mb-1">Print-ready at {opt.cm} × {opt.cm} cm (300 DPI)</div>
-                          For business cards, product labels, and small stickers. For best print sharpness, choose SVG format so it scales without pixelation.
+                          <div className="font-medium mb-1">Print-ready at {opt.cm} × {opt.cm} cm</div>
+                          Scans reliably from up to <strong>~{scanDistanceLabel(opt.cm)}</strong> away (10:1 rule). For best print sharpness choose SVG — it scales without pixelation and includes physical cm units.
                         </div>
                       )
                     }

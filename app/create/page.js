@@ -51,6 +51,7 @@ import {
   scanDistanceLabel,
 } from '@/lib/qr-use-cases'
 import RealSizePreview from '@/components/RealSizePreview'
+import SizeChart from '@/components/SizeChart'
 import { addCaptionToCanvas, addCaptionToSvg, setSvgPhysicalSize, captionInfo, captionFontRatio } from '@/lib/qr-caption'
 
 const FORMATS = ['png', 'svg']
@@ -887,6 +888,7 @@ export default function CreatePage() {
                       </div>
                     </div>
                   )}
+                  <SizeChart activeUseId={printUse} onSelect={onPrintUseChange} />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
