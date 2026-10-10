@@ -416,7 +416,9 @@ export default function App() {
         </div>
         <p className="mt-4 text-xs text-muted-foreground">
           Need to build a new QR from scratch?{' '}
-          <a href="/create" className="underline underline-offset-2 hover:text-foreground">Generate a QR code with logo</a>{' '}for URL, WiFi, business card, food menu &amp; more — free, no signup.
+          <a href="/create" className="underline underline-offset-2 hover:text-foreground">Generate a QR code with logo</a>{' '}·{' '}
+          <a href="/create/bulk" className="underline underline-offset-2 hover:text-foreground">Generate QR codes in bulk from Excel</a>{' '}·{' '}
+          <a href="/qr-size-guide" className="underline underline-offset-2 hover:text-foreground">QR code size guide</a>
         </p>
       </section>
 
