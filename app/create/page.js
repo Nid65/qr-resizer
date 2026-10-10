@@ -50,6 +50,8 @@ import {
   getRecommendation,
   scanDistanceLabel,
 } from '@/lib/qr-use-cases'
+import RealSizePreview from '@/components/RealSizePreview'
+import { addCaptionToCanvas, addCaptionToSvg, setSvgPhysicalSize, captionInfo, captionFontRatio } from '@/lib/qr-caption'
 
 const FORMATS = ['png', 'svg']
 const EC_LEVELS = [
@@ -160,6 +162,7 @@ export default function CreatePage() {
   const [previewUrl, setPreviewUrl] = useState('')
   const [downloadUrl, setDownloadUrl] = useState('')
   const [busy, setBusy] = useState(false)
+  const [realOpen, setRealOpen] = useState(false)
 
   const encoded = useMemo(() => buildEncodedString(type, data), [type, data])
   const effectiveEc = logoDataUrl ? 'H' : ecLevel
@@ -200,6 +203,10 @@ export default function CreatePage() {
     if (recommendation.format) setFormat(recommendation.format)
     toast.success(`Size set to ${recommendation.size?.label?.split('·')[0].trim()}`)
   }
+  const capInfo = useMemo(
+    () => captionInfo(caption, SIZES.find((s) => s.id === size), size),
+    [caption, size]
+  )
   const isRecommendedApplied = recommendation
     ? size === recommendation.sizeId && (!recommendation.format || format === recommendation.format)
     : false
@@ -252,6 +259,8 @@ export default function CreatePage() {
           margin: 2,
           color: { dark: fgColor, light: effectiveBg },
         }
+        const sizeOpt = SIZES.find((s) => s.id === size)
+        const capRatio = captionFontRatio(sizeOpt)
 
         // ---- Preview: always canvas -> PNG data URL (fast)
         const previewCanvas = document.createElement('canvas')
@@ -263,7 +272,7 @@ export default function CreatePage() {
         if (logoDataUrl) {
           await drawLogoOnCanvas(previewCanvas, logoDataUrl, logoBackdrop)
         }
-        const previewWithCaption = caption ? addCaptionToCanvas(previewCanvas, caption, effectiveBg, fgColor) : previewCanvas
+        const previewWithCaption = caption ? addCaptionToCanvas(previewCanvas, caption, effectiveBg, fgColor, capRatio) : previewCanvas
         const previewData = previewWithCaption.toDataURL('image/png')
         if (cancelled) return
         setPreviewUrl(previewData)
@@ -278,7 +287,7 @@ export default function CreatePage() {
           if (logoDataUrl) {
             await drawLogoOnCanvas(outCanvas, logoDataUrl, logoBackdrop)
           }
-          const outWithCaption = caption ? addCaptionToCanvas(outCanvas, caption, effectiveBg, fgColor) : outCanvas
+          const outWithCaption = caption ? addCaptionToCanvas(outCanvas, caption, effectiveBg, fgColor, capRatio) : outCanvas
           const outData = outWithCaption.toDataURL('image/png')
           if (cancelled) return
           setDownloadUrl(outData)
@@ -297,12 +306,12 @@ export default function CreatePage() {
           if (logoDataUrl) {
             svg = embedLogoInSvg(svg, logoDataUrl, logoBackdrop)
           }
+          if (caption) {
+            svg = addCaptionToSvg(svg, caption, bgColor, fgColor, capRatio, bgTransparent)
+          }
           // If a print size is chosen, embed physical cm dimensions in the SVG
-          const opt = SIZES.find((s) => s.id === size)
-          if (opt?.group === 'print') {
-            svg = svg
-              .replace(/width="\d+(?:\.\d+)?"/, `width="${opt.cm}cm"`)
-              .replace(/height="\d+(?:\.\d+)?"/, `height="${opt.cm}cm"`)
+          if (sizeOpt?.group === 'print') {
+            svg = setSvgPhysicalSize(svg, sizeOpt.cm)
           }
           const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' })
           const url = URL.createObjectURL(blob)
@@ -671,9 +680,27 @@ export default function CreatePage() {
                       placeholder="Scan for menu"
                       maxLength={60}
                     />
-                    <p className="mt-1 text-[10px] text-muted-foreground">
-                      Rendered under the QR when downloaded. Great for printing an objective or call-to-action next to the code.
-                    </p>
+                    {capInfo ? (
+                      <div className="mt-1 text-[11px] space-y-0.5" data-testid="caption-info">
+                        <p className="text-muted-foreground">
+                          {capInfo.isPrint ? (
+                            <>Auto-sized for print: <strong className="text-foreground">~{capInfo.pt.toFixed(1)} pt</strong> ({capInfo.mm.toFixed(1)} mm tall letters) on {capInfo.lines} line{capInfo.lines > 1 ? 's' : ''} — {capInfo.pt < 8 ? 'readable up close, just right for cards and labels.' : capInfo.pt < 16 ? 'easy to read at arm’s length.' : 'readable from across the room.'}</>
+                          ) : (
+                            <>Text size scales with your QR ({capInfo.px}px letters on {capInfo.lines} line{capInfo.lines > 1 ? 's' : ''}). Included in PNG and SVG downloads.</>
+                          )}
+                        </p>
+                        {capInfo.truncated && (
+                          <p className="text-amber-700 dark:text-amber-400">Too long for this size — only the first 3 lines will print. Try a shorter caption or a bigger size.</p>
+                        )}
+                        {!capInfo.truncated && capInfo.shrunk && (
+                          <p className="text-amber-700 dark:text-amber-400">A long word was slightly shrunk to fit. Shorter words print bigger.</p>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="mt-1 text-[10px] text-muted-foreground">
+                        Rendered under the QR in PNG and SVG downloads. Text size adapts to your print size so it stays readable.
+                      </p>
+                    )}
                   </div>
 
                   <Field label={`Error correction${logoDataUrl ? ' (forced to H for logo)' : ''}`}>
@@ -762,6 +789,35 @@ export default function CreatePage() {
                     </div>
                   )}
                 </div>
+
+                {(() => {
+                  const opt = SIZES.find((s) => s.id === size)
+                  const isPrint = opt?.group === 'print'
+                  return (
+                    <>
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        disabled={!previewUrl || !isPrint}
+                        onClick={() => setRealOpen(true)}
+                        data-testid="real-size-btn"
+                      >
+                        <Ruler className="mr-2 h-4 w-4" />
+                        {isPrint ? `See it at real size (${opt.cm} × ${opt.cm} cm) next to a card or phone` : 'Real-size preview — pick a print size below'}
+                      </Button>
+                      {isPrint && (
+                        <RealSizePreview
+                          open={realOpen}
+                          onOpenChange={setRealOpen}
+                          imageUrl={previewUrl}
+                          cm={opt.cm}
+                          label={opt.label.split('·')[0].trim()}
+                          bgTransparent={bgTransparent}
+                        />
+                      )}
+                    </>
+                  )
+                })()}
 
                 {/* Use-case picker + recommendation */}
                 <div className="rounded-lg border p-3 space-y-3 bg-muted/20" data-testid="use-case-panel">
@@ -1171,53 +1227,6 @@ async function drawLogoOnCanvas(canvas, logoDataUrl, bgColor) {
   })
 }
 
-function addCaptionToCanvas(qrCanvas, text, bgColor, fgColor) {
-  const w = qrCanvas.width
-  const padding = Math.round(w * 0.04)
-  const fontSize = Math.max(14, Math.round(w * 0.045))
-  const lineHeight = Math.round(fontSize * 1.25)
-
-  // Wrap text (measure with temporary context)
-  const measureCtx = qrCanvas.getContext('2d')
-  measureCtx.font = `600 ${fontSize}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`
-  const maxWidth = w - padding * 2
-  const words = String(text).split(/\s+/)
-  const lines = []
-  let current = ''
-  for (const word of words) {
-    const test = current ? current + ' ' + word : word
-    if (measureCtx.measureText(test).width <= maxWidth) {
-      current = test
-    } else {
-      if (current) lines.push(current)
-      current = word
-    }
-  }
-  if (current) lines.push(current)
-  const maxLines = 3
-  const shown = lines.slice(0, maxLines)
-
-  const captionHeight = padding + shown.length * lineHeight + padding
-
-  const out = document.createElement('canvas')
-  out.width = w
-  out.height = qrCanvas.height + captionHeight
-  const ctx = out.getContext('2d')
-  ctx.fillStyle = bgColor === '#00000000' ? '#ffffff' : bgColor
-  ctx.fillRect(0, 0, out.width, out.height)
-  ctx.drawImage(qrCanvas, 0, 0)
-
-  ctx.font = `600 ${fontSize}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`
-  ctx.fillStyle = fgColor
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  shown.forEach((line, i) => {
-    const y = qrCanvas.height + padding + i * lineHeight + lineHeight / 2
-    ctx.fillText(line, w / 2, y)
-  })
-
-  return out
-}
 
 
 function roundedRect(ctx, x, y, w, h, r) {

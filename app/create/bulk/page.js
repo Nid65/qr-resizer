@@ -25,6 +25,7 @@ import {
   getRecommendation,
   detectUseFromContent,
 } from '@/lib/qr-use-cases'
+import { addCaptionToCanvas, addCaptionToSvg, setSvgPhysicalSize, captionFontRatio } from '@/lib/qr-caption'
 import {
   QrCode,
   Download,
@@ -75,43 +76,6 @@ function sanitize(s, fallback = 'qr') {
   return String(s || fallback).replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').slice(0, 50) || fallback
 }
 
-function addCaption(qrCanvas, text, bgColor, fgColor) {
-  if (!text) return qrCanvas
-  const w = qrCanvas.width
-  const padding = Math.round(w * 0.04)
-  const fontSize = Math.max(14, Math.round(w * 0.045))
-  const lineHeight = Math.round(fontSize * 1.25)
-  const measure = qrCanvas.getContext('2d')
-  measure.font = `600 ${fontSize}px system-ui, sans-serif`
-  const maxWidth = w - padding * 2
-  const words = String(text).split(/\s+/)
-  const lines = []
-  let cur = ''
-  for (const word of words) {
-    const t = cur ? cur + ' ' + word : word
-    if (measure.measureText(t).width <= maxWidth) cur = t
-    else { if (cur) lines.push(cur); cur = word }
-  }
-  if (cur) lines.push(cur)
-  const shown = lines.slice(0, 3)
-  const captionHeight = padding + shown.length * lineHeight + padding
-  const out = document.createElement('canvas')
-  out.width = w
-  out.height = qrCanvas.height + captionHeight
-  const ctx = out.getContext('2d')
-  ctx.fillStyle = bgColor || '#ffffff'
-  ctx.fillRect(0, 0, out.width, out.height)
-  ctx.drawImage(qrCanvas, 0, 0)
-  ctx.font = `600 ${fontSize}px system-ui, sans-serif`
-  ctx.fillStyle = fgColor || '#000000'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  shown.forEach((line, i) => {
-    const y = qrCanvas.height + padding + i * lineHeight + lineHeight / 2
-    ctx.fillText(line, w / 2, y)
-  })
-  return out
-}
 
 export default function BulkQrPage() {
   const [rows, setRows] = useState([])
@@ -201,12 +165,8 @@ export default function BulkQrPage() {
             width: r.size_px,
             color: { dark: r.fg_color, light: r.bg_color },
           })
-          // For simplicity, caption not embedded in SVG here — SVG stays clean vector
-          if (r.sizeOpt) {
-            svg = svg
-              .replace(/width="\d+(?:\.\d+)?"/, `width="${r.sizeOpt.cm}cm"`)
-              .replace(/height="\d+(?:\.\d+)?"/, `height="${r.sizeOpt.cm}cm"`)
-          }
+          if (r.caption) svg = addCaptionToSvg(svg, r.caption, r.bg_color, r.fg_color, captionFontRatio(r.sizeOpt))
+          if (r.sizeOpt) svg = setSvgPhysicalSize(svg, r.sizeOpt.cm)
           zip.file(`${String(i + 1).padStart(3, '0')}-${sanitize(r.label)}.svg`, svg)
         } else {
           const canvas = document.createElement('canvas')
@@ -215,7 +175,7 @@ export default function BulkQrPage() {
             width: r.size_px,
             color: { dark: r.fg_color, light: r.bg_color },
           })
-          const final = r.caption ? addCaption(canvas, r.caption, r.bg_color, r.fg_color) : canvas
+          const final = r.caption ? addCaptionToCanvas(canvas, r.caption, r.bg_color, r.fg_color, captionFontRatio(r.sizeOpt)) : canvas
           const blob = await new Promise((resolve) => final.toBlob(resolve, 'image/png'))
           zip.file(`${String(i + 1).padStart(3, '0')}-${sanitize(r.label)}.png`, blob)
         }
@@ -518,7 +478,7 @@ export default function BulkQrPage() {
         <div className="max-w-3xl mx-auto grid gap-3">
           {[
             { q: 'How many QRs can I generate at once?', a: 'There is no hard limit — the whole process runs in your browser. In practice, 500 QRs at 1024px take about 30 seconds. Larger batches work but may be slow on older devices.' },
-            { q: 'What Excel columns are supported?', a: 'content (required — the URL or data to encode), label (used in the filename), caption (optional text rendered below the QR on PNG), use_case (e.g. business-card, menu, flyer, poster — auto-picks the recommended print size; full list in the template’s second sheet), size_px (128 to 4096, overrides use_case), format (png or svg), fg_color and bg_color (hex codes).' },
+            { q: 'What Excel columns are supported?', a: 'content (required — the URL or data to encode), label (used in the filename), caption (optional text rendered below the QR in PNG and SVG, auto-sized to stay readable at the print size), use_case (e.g. business-card, menu, flyer, poster — auto-picks the recommended print size; full list in the template’s second sheet), size_px (128 to 4096, overrides use_case), format (png or svg), fg_color and bg_color (hex codes).' },
             { q: 'What content types can I use in bulk?', a: 'Anything a QR can encode: URLs, plain text, tel:+123 phone numbers, mailto:you@example.com emails, sms:, WIFI:T:WPA;S:name;P:pass;; strings, or full vCard blocks. Same as the single QR generator.' },
             { q: 'What is inside the downloaded ZIP?', a: 'One file per row named 001-your-label.png (or .svg), plus a _manifest.csv listing every generated file with its original content — great for audits and records.' },
             { q: 'Are these dynamic or static QR codes?', a: 'Bulk generates static QR codes only. The content is encoded directly into each QR image. They work forever and never expire.' },
