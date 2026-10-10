@@ -145,7 +145,7 @@ export default function SizeGuidePage() {
         <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-8 text-center">12 common use cases &amp; their ideal QR size</h2>
         <div className="grid gap-4 md:grid-cols-2 max-w-6xl mx-auto">
           {USE_CASES.map((u) => (
-            <Card key={u.n} className="border-border/70">
+            <Card key={u.n} id={`use-case-${u.n}`} className="border-border/70 scroll-mt-24 target:ring-2 target:ring-primary">
               <CardContent className="p-5">
                 <div className="flex items-start gap-3 mb-3">
                   <div className="shrink-0 h-8 w-8 rounded-full bg-primary/10 text-primary grid place-items-center text-sm font-semibold">{u.n}</div>

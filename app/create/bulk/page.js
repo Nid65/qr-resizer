@@ -365,9 +365,14 @@ export default function BulkQrPage() {
                         : (() => {
                             const u = getUse(globalUse)
                             const sz = getSize(u?.sizeId)
-                            return `All ${rows.length} QRs set to ${sz?.group === 'print' ? `${sz.cm} × ${sz.cm} cm` : `${sz?.id} px`}${u?.format ? ` · ${u.format.toUpperCase()}` : ''} — ${u?.why}`
+                            return `All ${rows.length} QRs set to ${sz?.group === 'print' ? `${sz.cm} × ${sz.cm} cm` : `${sz?.id} px`}${u?.format ? ` · ${u.format.toUpperCase()}` : ''} — ${u?.friendly || u?.why}`
                           })()}{' '}
-                      <Link href="/qr-size-guide" className="underline underline-offset-2 hover:text-foreground">Size guide</Link>
+                      <Link
+                        href={globalUse !== 'per-row' && getUse(globalUse)?.guide ? `/qr-size-guide#use-case-${getUse(globalUse).guide}` : '/qr-size-guide'}
+                        className="font-medium text-primary hover:underline underline-offset-2"
+                      >
+                        Learn more in our Size Guide →
+                      </Link>
                     </div>
                   </div>
                 </div>

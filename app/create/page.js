@@ -165,8 +165,21 @@ export default function CreatePage() {
   const effectiveEc = logoDataUrl ? 'H' : ecLevel
 
   // ---- Use-case based size recommendation
-  const [printUse, setPrintUse] = useState('auto')
-  const activeUseId = printUse === 'auto' ? TYPE_DEFAULT_USE[type] : printUse
+  const [printUse, setPrintUse] = useState(TYPE_DEFAULT_USE.url)
+  const [useAutoPicked, setUseAutoPicked] = useState(true)
+  const activeUseId = printUse
+  // Auto-select the most likely print location whenever the QR type above changes
+  useEffect(() => {
+    const def = TYPE_DEFAULT_USE[type]
+    if (def) {
+      setPrintUse(def)
+      setUseAutoPicked(true)
+    }
+  }, [type])
+  const onPrintUseChange = (v) => {
+    setPrintUse(v)
+    setUseAutoPicked(false)
+  }
   const recommendation = useMemo(
     () => getRecommendation(activeUseId, encoded.length),
     [activeUseId, encoded.length]
@@ -753,12 +766,9 @@ export default function CreatePage() {
                 {/* Use-case picker + recommendation */}
                 <div className="rounded-lg border p-3 space-y-3 bg-muted/20" data-testid="use-case-panel">
                   <Field label="Where will you print or share this?">
-                    <Select value={printUse} onValueChange={setPrintUse}>
+                    <Select value={printUse} onValueChange={onPrintUseChange}>
                       <SelectTrigger data-testid="use-case-select"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="auto">
-                          Auto — suggest from QR type ({TYPES.find((t) => t.value === type)?.short})
-                        </SelectItem>
                         {PRINT_USE_GROUPS.map((g) => (
                           <SelectGroup key={g}>
                             <SelectLabel>{g}</SelectLabel>
@@ -770,34 +780,55 @@ export default function CreatePage() {
                       </SelectContent>
                     </Select>
                   </Field>
+                  {useAutoPicked && (
+                    <div className="-mt-1 text-[11px] text-muted-foreground flex items-center gap-1" data-testid="use-auto-note">
+                      <Sparkles className="h-3 w-3 text-primary" />
+                      Picked for you based on <strong className="text-foreground font-medium">{TYPES.find((t) => t.value === type)?.short}</strong> — change it anytime.
+                    </div>
+                  )}
 
                   {recommendation && (
-                    <div className="flex items-start gap-2 text-xs" data-testid="size-recommendation">
-                      <Ruler className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                      <div className="flex-1 space-y-1">
-                        <div className="text-foreground">
-                          Recommended for <strong>{recommendation.use.label}</strong>:{' '}
-                          <strong className="text-primary">
-                            {recommendation.size?.label?.split('·')[0].trim()}
-                            {recommendation.format ? ` · ${recommendation.format.toUpperCase()}` : ''}
-                          </strong>
+                    <div className="rounded-md border border-primary/20 bg-background p-3 text-xs space-y-2" data-testid="size-recommendation">
+                      <div className="flex items-start gap-2">
+                        <Ruler className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                        <div className="flex-1 space-y-1">
+                          <div className="text-foreground">
+                            Our recommendation:{' '}
+                            <strong className="text-primary">
+                              {recommendation.size?.label?.split('·')[0].trim()}
+                              {recommendation.format ? ` · ${recommendation.format.toUpperCase()}` : ''}
+                            </strong>
+                          </div>
+                          <p className="text-muted-foreground leading-relaxed">
+                            {recommendation.use.friendly || recommendation.use.why}
+                            {recommendation.bumped && ' Your QR holds quite a bit of information, so we went one size up to keep it easy to scan.'}
+                          </p>
                         </div>
-                        <div className="text-muted-foreground">
-                          {recommendation.use.why}
-                          {recommendation.bumped && ' Bumped up one size because your QR holds a lot of data (denser pattern).'}
-                          {' '}Scan distance: {recommendation.use.distance}.{' '}
-                          <Link href="/qr-size-guide" className="underline underline-offset-2 hover:text-foreground">Size guide</Link>
-                        </div>
+                        {isRecommendedApplied ? (
+                          <Badge variant="secondary" className="gap-1 shrink-0" data-testid="recommended-applied">
+                            <CheckCircle2 className="h-3 w-3 text-emerald-600" /> Applied
+                          </Badge>
+                        ) : (
+                          <Button size="sm" variant="outline" className="h-7 text-xs shrink-0" onClick={applyRecommendation} data-testid="apply-recommended">
+                            Use recommended
+                          </Button>
+                        )}
                       </div>
-                      {isRecommendedApplied ? (
-                        <Badge variant="secondary" className="gap-1 shrink-0" data-testid="recommended-applied">
-                          <CheckCircle2 className="h-3 w-3 text-emerald-600" /> Applied
-                        </Badge>
-                      ) : (
-                        <Button size="sm" variant="outline" className="h-7 text-xs shrink-0" onClick={applyRecommendation} data-testid="apply-recommended">
-                          Use recommended
-                        </Button>
+                      {!isRecommendedApplied && (
+                        <div className="text-[11px] text-amber-700 dark:text-amber-400 pl-6">
+                          You’ve picked a different size — that’s fine! Just test-scan a print before ordering in bulk.
+                        </div>
                       )}
+                      <div className="flex items-center justify-between pl-6 pt-1 border-t border-border/60">
+                        <span className="text-[11px] text-muted-foreground pt-1.5">Scan distance: {recommendation.use.distance}</span>
+                        <Link
+                          href={recommendation.use.guide ? `/qr-size-guide#use-case-${recommendation.use.guide}` : '/qr-size-guide'}
+                          className="text-[11px] font-medium text-primary hover:underline underline-offset-2 pt-1.5"
+                          data-testid="learn-more-size-guide"
+                        >
+                          Learn more in our Size Guide →
+                        </Link>
+                      </div>
                     </div>
                   )}
                 </div>
